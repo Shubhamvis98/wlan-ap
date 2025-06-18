@@ -1,0 +1,52 @@
+From 2d36b5ee7c3bb9300cc8cfe555c4cba643d6dc88 Mon Sep 17 00:00:00 2001
+From: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+Date: Wed, 11 Jun 2025 16:45:19 +0530
+Subject: [PATCH] fix basename() usage and include missing libgen.h
+
+---
+ src/file.c   | 2 +-
+ src/file.h   | 1 +
+ src/upfile.c | 2 +-
+ 3 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/file.c b/src/file.c
+index d3f6133..87f0fa8 100644
+--- a/src/file.c
++++ b/src/file.c
+@@ -94,7 +94,7 @@ static void start_upload_file(struct file_context *ctx, struct buffer *info)
+     struct rtty *rtty = container_of(ctx, struct rtty, file_context);
+     uint32_t size = buffer_pull_u32(info);
+     const char *path = buffer_data(info);
+-    const char *name = basename(path);
++    const char *name = basename((char *)path);
+     int fd;
+ 
+     fd = open(path, O_RDONLY | O_NONBLOCK);
+diff --git a/src/file.h b/src/file.h
+index 0d21af7..2df3243 100644
+--- a/src/file.h
++++ b/src/file.h
+@@ -29,6 +29,7 @@
+ #include <sys/un.h>
+ 
+ #include "buffer.h"
++#include <libgen.h>
+ 
+ enum {
+     RTTY_FILE_MSG_START_DOWNLOAD,
+diff --git a/src/upfile.c b/src/upfile.c
+index cb8719a..5d22adb 100644
+--- a/src/upfile.c
++++ b/src/upfile.c
+@@ -113,7 +113,7 @@ void upload_file(const char *path)
+     ev_signal_init(&sw, signal_cb, SIGINT);
+     ev_signal_start(loop, &sw);
+ 
+-    printf("Transferring '%s'...Press Ctrl+C to cancel\n", basename(path));
++    printf("Transferring '%s'...Press Ctrl+C to cancel\n", basename((char *)path));
+ 
+     ev_run(loop, 0);
+ 
+-- 
+2.47.2
+
