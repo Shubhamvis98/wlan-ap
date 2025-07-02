@@ -88,29 +88,6 @@ function online_handler() {
 	}
 }
 
-function config_load() {
-	ulog(LOG_INFO, 'loading config\n');
-	uci.load('state');
-	config = uci.get_all('state');
-
-	if (healthcheck?.interval)
-		healthcheck.interval.cancel();
-	if (config?.health?.interval)
-		healthcheck.run(config?.health?.interval * 1000);
-
-	if (state?.interval)
-		state.interval.cancel();
-	if (config?.stats?.interval)
-		state.run(config?.stats?.interval * 1000);
-
-	let status = ubus.call('ucentral', 'status');
-	if (status?.connected) {
-		online_handler();
-		online = true;
-	} else if (config.ui.offline_trigger)
-		offline_timer = uloop.timer(config.ui.offline_trigger * 1000, offline_handler);
-}
-
 function led_write(led, property, value) {
 	let path = '/sys/class/leds/' + led + '/' + property;
 	let current = trim(fs.readfile(path));
@@ -148,12 +125,74 @@ function blink_timeout() {
 	blink_timer = null;
 }
 
+function led_off_all() {
+	let path = "/sys/class/leds";
+	let leds = fs.lsdir(path);
+	for (let led in leds) {
+		if (fs.stat(path + "/" + led).type == "directory")
+			led_write(led, 'brightness', 0);
+			led_write(led, 'trigger', 'none');
+	}
+}
+
+function is_exist(path) {
+	try {
+		let path_stat = fs.stat(path);
+		return path_stat.type;
+	} catch (e) {
+		return null;
+	}
+}
+
+function check_factory() {
+	if (!is_exist('/etc/ucentral/key.pem')) {
+		let led = led_find("led-factory");
+		if (led) {
+			led_off_all();
+			led_write(led, 'trigger', 'timer');
+			led_write(led, 'delay_off', 100);
+			led_write(led, 'delay_on', 100);
+		}
+	} else if (!is_exist('/etc/ucentral/gateway.json')) {
+		let led = led_find('led-gateway');
+		if (led)
+			led_off_all();
+			led_write(led, 'trigger', 'default-on');
+	}
+}
+
+function config_load() {
+	ulog(LOG_INFO, 'loading config\n');
+	uci.load('state');
+	config = uci.get_all('state');
+
+	if (healthcheck?.interval)
+		healthcheck.interval.cancel();
+	if (config?.health?.interval)
+		healthcheck.run(config?.health?.interval * 1000);
+
+	if (state?.interval)
+		state.interval.cancel();
+	if (config?.stats?.interval)
+		state.run(config?.stats?.interval * 1000);
+
+	let status = ubus.call('ucentral', 'status');
+	if (status?.connected) {
+		online_handler();
+		online = true;
+	} else if (config.ui.offline_trigger)
+		offline_timer = uloop.timer(config.ui.offline_trigger * 1000, offline_handler);
+
+	uloop.timer(10000, check_factory);
+}
+
 let state_handler = {
 	offline: function() {
 		online = false;
-		let led = led_find('led-running');
+		let led = led_find('led-gateway');
 		if (led)
-			led_write(led, 'trigger', 'heartbeat');
+			led_off_all();
+			led_write(led, 'trigger', 'default-on');
 		if (config.ui.offline_trigger) {
 			if (offline_timer)
 				offline_timer.cancel();
@@ -166,6 +205,7 @@ let state_handler = {
 		online = true;
 		let led = led_find('led-running');
 		if (led)
+			led_off_all();
 			led_write(led, 'trigger', 'default-on');
 		online_handler();
 		return 0;
@@ -175,6 +215,7 @@ let state_handler = {
 		let led = led_find('led-running');
 		if (!led)
 			return ubus.STATUS_INVALID_ARGUMENT;
+		led_off_all();
 		led_write(led, 'trigger', 'timer');
 		led_write(led, 'delay_on', '100');
 		led_write(led, 'delay_off', '100');
