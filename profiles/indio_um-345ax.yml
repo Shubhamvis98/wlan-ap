@@ -1,0 +1,14 @@
+---
+profile: indio_um-345ax
+target: qualcommax
+subtarget: ipq807x
+description: Build image for the Indio UM-345AX
+image: bin/targets/ipq50xx/generic/openwrt-ipq807x-indio_um-345ax-squashfs-sysupgrade.tar
+packages:
+  - ipq807x
+include:
+  - ucentral-ap
+diffconfig: |
+  CONFIG_KERNEL_IPQ_MEM_PROFILE=512
+  CONFIG_BUSYBOX_CUSTOM=y
+  CONFIG_BUSYBOX_CUSTOM_STTY=y

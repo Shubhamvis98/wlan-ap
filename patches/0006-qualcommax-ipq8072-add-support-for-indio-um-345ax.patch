@@ -1,0 +1,547 @@
+From 545160e6e21bb5d98b6e0e8a593bcbd0b409e3e2 Mon Sep 17 00:00:00 2001
+From: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+Date: Thu, 31 Jul 2025 11:22:45 +0530
+Subject: [PATCH] qualcommax ipq8072 add support for indio um-345ax
+
+Signed-off-by: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+---
+ .../uboot-envtools/files/qualcommax_ipq807x   |   1 +
+ package/firmware/ipq-wifi/Makefile            |   2 +
+ .../arm64/boot/dts/qcom/ipq8072-um-345ax.dts  | 397 ++++++++++++++++++
+ target/linux/qualcommax/image/ipq807x.mk      |  15 +
+ .../ipq807x/base-files/etc/board.d/01_leds    |   1 +
+ .../ipq807x/base-files/etc/board.d/02_network |   3 +-
+ .../etc/hotplug.d/firmware/11-ath11k-caldata  |   1 +
+ .../ipq807x/base-files/etc/init.d/bootcount   |   1 +
+ .../base-files/lib/upgrade/platform.sh        |   1 +
+ 9 files changed, 421 insertions(+), 1 deletion(-)
+ create mode 100644 target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8072-um-345ax.dts
+
+diff --git a/package/boot/uboot-tools/uboot-envtools/files/qualcommax_ipq807x b/package/boot/uboot-tools/uboot-envtools/files/qualcommax_ipq807x
+index 21ec0ae5b1..3c77374200 100644
+--- a/package/boot/uboot-tools/uboot-envtools/files/qualcommax_ipq807x
++++ b/package/boot/uboot-tools/uboot-envtools/files/qualcommax_ipq807x
+@@ -29,6 +29,7 @@ case "$board" in
+ aliyun,ap8220|\
+ compex,wpq873|\
+ edgecore,eap102|\
++indio,um-345ax|\
+ zyxel,nbg7815)
+ 	ubootenv_add_mtd "0:appsblenv" "0x0" "0x10000" "0x10000"
+ 	;;
+diff --git a/package/firmware/ipq-wifi/Makefile b/package/firmware/ipq-wifi/Makefile
+index c5bfb3b31c..e92fb5b0dd 100644
+--- a/package/firmware/ipq-wifi/Makefile
++++ b/package/firmware/ipq-wifi/Makefile
+@@ -41,6 +41,7 @@ ALLWIFIBOARDS:= \
+ 	glinet_gl-ax1800 \
+ 	glinet_gl-axt1800 \
+ 	indio_um-325ax \
++	indio_um-345ax \
+ 	linksys_homewrk \
+ 	linksys_mr5500 \
+ 	linksys_mr7350 \
+@@ -191,6 +192,7 @@ $(eval $(call generate-ipq-wifi-package,edimax_cax1800,Edimax CAX1800))
+ $(eval $(call generate-ipq-wifi-package,glinet_gl-ax1800,GL.iNet GL-AX1800))
+ $(eval $(call generate-ipq-wifi-package,glinet_gl-axt1800,GL.iNet GL-AXT1800))
+ $(eval $(call generate-ipq-wifi-package,indio_um-325ax,Indio UM-325AX))
++$(eval $(call generate-ipq-wifi-package,indio_um-345ax,Indio UM-345AX))
+ $(eval $(call generate-ipq-wifi-package,linksys_homewrk,Linksys HomeWRK))
+ $(eval $(call generate-ipq-wifi-package,linksys_mr5500,Linksys MR5500))
+ $(eval $(call generate-ipq-wifi-package,linksys_mr7350,Linksys MR7350))
+diff --git a/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8072-um-345ax.dts b/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8072-um-345ax.dts
+new file mode 100644
+index 0000000000..9bc6bf435a
+--- /dev/null
++++ b/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8072-um-345ax.dts
+@@ -0,0 +1,397 @@
++// SPDX-License-Identifier: MIT, GPL-2.0 or later
++/* Copyright (c) 2023, Ruslan Isaev <legale.legale@gmail.com> */
++
++/dts-v1/;
++
++#include "ipq8074.dtsi"
++#include "ipq8074-hk-cpu.dtsi"
++#include "ipq8074-ess.dtsi"
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/leds/common.h>
++
++/ {
++	model = "Indio UM-345AX";
++	compatible = "indio,um-345ax", "qcom,ipq8074", "qcom,ipq8074-hk09";
++
++	aliases {
++		serial0 = &blsp1_uart5;
++		serial1 = &blsp1_uart3;
++		led-boot = &led_red;
++		led-failsafe = &led_red;
++		led-running = &led_green;
++		led-upgrade = &led_green;
++		led-gateway = &led_blue;
++		led-factory = &led_blue;
++		/* Aliases as required by u-boot to patch MAC addresses */
++		ethernet0 = &dp5_syn;
++		ethernet1 = &dp6_syn;
++		label-mac-device = &dp5_syn;
++	};
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++		bootargs-append = " root=/dev/ubiblock0_1";
++	};
++
++	keys {
++		compatible = "gpio-keys";
++		pinctrl-0 = <&button_pins>;
++		pinctrl-names = "default";
++
++		reset {
++			label = "reset";
++			gpios = <&tlmm 57 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_RESTART>;
++		};
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		led_red: system {
++			label = "system";
++			color = "red";
++			gpios = <&tlmm 0 GPIO_ACTIVE_HIGH>;
++		};
++
++		led_green: wlan2g {
++			label = "wlan2g";
++			color = "green";
++			gpios = <&tlmm 2 GPIO_ACTIVE_HIGH>;
++		};
++
++		led_blue: wlan5g {
++			label = "wlan5g";
++			color = "blue";
++			gpios = <&tlmm 9 GPIO_ACTIVE_HIGH>;
++		};
++	};
++};
++
++&tlmm {
++	mdio_pins: mdio-pins {
++		mdc {
++			pins = "gpio68";
++			function = "mdc";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++
++		mdio {
++			pins = "gpio69";
++			function = "mdio";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++	};
++
++	button_pins: button_pins {
++		reset_button {
++			pins = "gpio57";
++			function = "gpio";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++	};
++};
++
++&blsp1_spi1 {
++	status = "okay";
++
++	flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		reg = <0>;
++		compatible = "jedec,spi-nor";
++		spi-max-frequency = <50000000>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "0:sbl1";
++				reg = <0x0 0x50000>;
++				read-only;
++			};
++
++			partition@50000 {
++				label = "0:mibib";
++				reg = <0x50000 0x10000>;
++				read-only;
++			};
++
++			partition@60000 {
++				label = "0:bootconfig";
++				reg = <0x60000 0x20000>;
++				read-only;
++			};
++
++			partition@80000 {
++				label = "0:bootconfig1";
++				reg = <0x80000 0x20000>;
++				read-only;
++			};
++
++			partition@a0000 {
++				label = "0:qsee_1";
++				reg = <0xa0000 0x180000>;
++				read-only;
++			};
++
++			partition@220000 {
++				label = "0:qsee";
++				reg = <0x220000 0x180000>;
++				read-only;
++			};
++
++			partition@3a0000 {
++				label = "0:devcfg";
++				reg = <0x3a0000 0x10000>;
++				read-only;
++			};
++
++			partition@3b0000 {
++				label = "0:devcfg_1";
++				reg = <0x3b0000 0x10000>;
++				read-only;
++			};
++
++			partition@3c0000 {
++				label = "0:apdp";
++				reg = <0x3c0000 0x10000>;
++				read-only;
++			};
++
++			partition@3d0000 {
++				label = "0:apdp_1";
++				reg = <0x3d0000 0x10000>;
++				read-only;
++			};
++
++			partition@3e0000 {
++				label = "0:rpm_1";
++				reg = <0x3e0000 0x40000>;
++				read-only;
++			};
++
++			partition@420000 {
++				label = "0:rpm";
++				reg = <0x420000 0x40000>;
++				read-only;
++			};
++
++			partition@460000 {
++				label = "0:cdt_1";
++				reg = <0x460000 0x10000>;
++				read-only;
++			};
++
++			partition@470000 {
++				label = "0:cdt";
++				reg = <0x470000 0x10000>;
++				read-only;
++			};
++
++			partition@480000 {
++				label = "0:appsblenv";
++				reg = <0x480000 0x10000>;
++
++				nvmem-layout {
++					compatible = "u-boot,env";
++				};
++			};
++
++			partition@490000 {
++				label = "0:appsbl_1";
++				reg = <0x490000 0xa0000>;
++				read-only;
++			};
++
++			partition@550000 {
++				label = "0:appsbl";
++				reg = <0x530000 0xa0000>;
++				read-only;
++			};
++
++			partition@610000 {
++				label = "0:art";
++				reg = <0x5d0000 0x40000>;
++				read-only;
++			};
++
++			partition@650000 {
++				label = "0:ethphyfw";
++				reg = <0x610000 0x80000>;
++				read-only;
++			};
++
++		};
++	};
++};
++
++//serial interface
++&blsp1_uart3 {
++	status = "okay";
++};
++
++&blsp1_uart5 {
++	status = "okay";
++};
++
++&crypto {
++	status = "okay";
++};
++
++&cryptobam {
++	status = "okay";
++};
++
++&prng {
++	status = "okay";
++};
++
++&qpic_bam {
++	status = "okay";
++};
++
++&qusb_phy_0 {
++	status = "okay";
++};
++
++&ssphy_0 {
++	status = "okay";
++};
++
++&usb_0 {
++	status = "okay";
++};
++
++&qpic_nand {
++	status = "okay";
++
++	nand@0 {
++		reg = <0>;
++		nand-ecc-strength = <4>;
++		nand-ecc-step-size = <512>;
++		nand-bus-width = <8>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "rootfs_1";
++				reg = <0x0000000 0x3400000>;
++			};
++
++			partition@3400000 {
++				label = "0:wififw";
++				reg = <0x3400000 0x800000>;
++				read-only;
++			};
++
++			rootfs: partition@3c00000 {
++				label = "rootfs";
++				reg = <0x3c00000 0x3400000>;
++			};
++
++			partition@7000000 {
++				label = "0:wififw_1";
++				reg = <0x7000000 0x800000>;
++				read-only;
++			};
++		};
++	};
++};
++
++&mdio {
++	status = "okay";
++
++	pinctrl-0 = <&mdio_pins>;
++	pinctrl-names = "default";
++
++	qca8081_24: ethernet-phy@24 {
++		compatible = "ethernet-phy-id004d.d101";
++		reg = <24>;
++		reset-deassert-us = <10000>;
++		reset-gpios = <&tlmm 33 GPIO_ACTIVE_LOW>;
++
++		leds {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			led@0 {
++				reg = <0>;
++				color = <LED_COLOR_ID_GREEN>;
++				function = LED_FUNCTION_WAN;
++				default-state = "keep";
++			};
++		};
++	};
++
++	qca8081_28: ethernet-phy@28 {
++		compatible = "ethernet-phy-id004d.d101";
++		reg = <28>;
++		reset-deassert-us = <10000>;
++		reset-gpios = <&tlmm 44 GPIO_ACTIVE_LOW>;
++
++		leds {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			led@0 {
++				reg = <0>;
++				color = <LED_COLOR_ID_GREEN>;
++				function = LED_FUNCTION_LAN;
++				default-state = "keep";
++			};
++		};
++	};
++};
++
++&switch {
++	status = "okay";
++
++	switch_lan_bmp = <ESS_PORT6>; /* lan port bitmap */
++	switch_wan_bmp = <ESS_PORT5>; /* wan port bitmap */
++	switch_mac_mode1 = <MAC_MODE_SGMII_CHANNEL0>; /* mac mode for uniphy instance1*/
++	switch_mac_mode2 = <MAC_MODE_SGMII_CHANNEL0>; /* mac mode for uniphy instance2*/
++
++	qcom,port_phyinfo {
++		port@5 {
++			port_id = <5>;
++			phy_address = <24>;
++			port_mac_sel = "QGMAC_PORT";
++		};
++		port@6 {
++			port_id = <6>;
++			phy_address = <28>;
++			port_mac_sel = "QGMAC_PORT";
++		};
++	};
++};
++
++&edma {
++	status = "okay";
++};
++
++&dp5_syn {
++	status = "okay";
++	phy-handle = <&qca8081_24>;
++	label = "eth1";
++};
++
++&dp6_syn {
++	status = "okay";
++	phy-handle = <&qca8081_28>;
++	label = "eth0";
++};
++
++&wifi {
++	status = "okay";
++	qcom,ath11k-calibration-variant = "Indio-UM-345AX";
++};
+diff --git a/target/linux/qualcommax/image/ipq807x.mk b/target/linux/qualcommax/image/ipq807x.mk
+index 9a615eb0b4..822db3da91 100644
+--- a/target/linux/qualcommax/image/ipq807x.mk
++++ b/target/linux/qualcommax/image/ipq807x.mk
+@@ -169,6 +169,21 @@ define Device/edimax_cax1800
+ endef
+ TARGET_DEVICES += edimax_cax1800
+ 
++define Device/indio_um-345ax
++	$(call Device/FitImage)
++	$(call Device/UbiFit)
++	DEVICE_VENDOR := Indio
++	DEVICE_MODEL := UM-345AX
++	BLOCKSIZE := 128k
++	PAGESIZE := 2048
++	DEVICE_DTS_CONFIG := config@hk09
++	SOC := ipq8072
++	DEVICE_PACKAGES := ipq-wifi-indio_um-345ax
++	IMAGES += factory.bin
++	IMAGE/factory.bin := append-ubi | qsdk-ipq-factory-nand
++endef
++TARGET_DEVICES += indio_um-345ax
++
+ define Device/linksys_homewrk
+ 	$(call Device/FitImage)
+ 	$(call Device/UbiFit)
+diff --git a/target/linux/qualcommax/ipq807x/base-files/etc/board.d/01_leds b/target/linux/qualcommax/ipq807x/base-files/etc/board.d/01_leds
+index ae941657f9..d2c3ef7394 100644
+--- a/target/linux/qualcommax/ipq807x/base-files/etc/board.d/01_leds
++++ b/target/linux/qualcommax/ipq807x/base-files/etc/board.d/01_leds
+@@ -64,6 +64,7 @@ qnap,301w)
+ 	ucidef_set_led_netdev "10G_1" "10G_1" "green:10g-1" "10g-1"
+ 	ucidef_set_led_netdev "10G_2" "10G_2" "green:10g-2" "10g-2"
+ 	;;
++indio,um-345ax|\
+ yuncore,ax880)
+ 	ucidef_set_led_netdev "wan-port-link" "WAN-PORT-LINK" "90000.mdio-1:18:green:wan" "wan" "tx rx link_10 link_100 link_1000 link_2500"
+ 	ucidef_set_led_netdev "lan-port-link" "LAN-PORT-LINK" "90000.mdio-1:1c:green:lan" "lan" "tx rx link_10 link_100 link_1000 link_2500"
+diff --git a/target/linux/qualcommax/ipq807x/base-files/etc/board.d/02_network b/target/linux/qualcommax/ipq807x/base-files/etc/board.d/02_network
+index 7d55f6ab69..637d260aec 100644
+--- a/target/linux/qualcommax/ipq807x/base-files/etc/board.d/02_network
++++ b/target/linux/qualcommax/ipq807x/base-files/etc/board.d/02_network
+@@ -13,9 +13,10 @@ ipq807x_setup_interfaces()
+ 	case "$board" in
+ 	aliyun,ap8220|\
+ 	edgecore,eap102|\
++	indio,um-345ax|\
+ 	yuncore,ax880|\
+ 	zte,mf269)
+-		ucidef_set_interfaces_lan_wan "lan" "wan"
++		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+ 		;;
+ 	asus,rt-ax89x)
+ 		ucidef_set_interfaces_lan_wan "10g-sfp 10g-copper lan1 lan2 lan3 lan4 lan5 lan6 lan7 lan8" "wan"
+diff --git a/target/linux/qualcommax/ipq807x/base-files/etc/hotplug.d/firmware/11-ath11k-caldata b/target/linux/qualcommax/ipq807x/base-files/etc/hotplug.d/firmware/11-ath11k-caldata
+index 508ecec314..ce102dfe76 100644
+--- a/target/linux/qualcommax/ipq807x/base-files/etc/hotplug.d/firmware/11-ath11k-caldata
++++ b/target/linux/qualcommax/ipq807x/base-files/etc/hotplug.d/firmware/11-ath11k-caldata
+@@ -27,6 +27,7 @@ case "$FIRMWARE" in
+ 	dynalink,dl-wrx36|\
+ 	edgecore,eap102|\
+ 	edimax,cax1800|\
++	indio,um-345ax|\
+ 	linksys,mx5300|\
+ 	netgear,wax218|\
+ 	qnap,301w|\
+diff --git a/target/linux/qualcommax/ipq807x/base-files/etc/init.d/bootcount b/target/linux/qualcommax/ipq807x/base-files/etc/init.d/bootcount
+index e7c20493b6..63aff46af0 100755
+--- a/target/linux/qualcommax/ipq807x/base-files/etc/init.d/bootcount
++++ b/target/linux/qualcommax/ipq807x/base-files/etc/init.d/bootcount
+@@ -5,6 +5,7 @@ START=99
+ boot() {
+ 	case $(board_name) in
+ 	edgecore,eap102|\
++	indio,um-345ax|\
+ 	yuncore,ax880)
+ 		fw_setenv upgrade_available 0
+ 		# Unset changed flag after sysupgrade complete
+diff --git a/target/linux/qualcommax/ipq807x/base-files/lib/upgrade/platform.sh b/target/linux/qualcommax/ipq807x/base-files/lib/upgrade/platform.sh
+index ec8d0f58b0..d7ef2b2932 100644
+--- a/target/linux/qualcommax/ipq807x/base-files/lib/upgrade/platform.sh
++++ b/target/linux/qualcommax/ipq807x/base-files/lib/upgrade/platform.sh
+@@ -266,6 +266,7 @@ platform_do_upgrade() {
+ 	tplink,eap660hd-v1)
+ 		tplink_do_upgrade "$1"
+ 		;;
++	indio,um-345ax|\
+ 	yuncore,ax880)
+ 		active="$(fw_printenv -n active)"
+ 		if [ "$active" -eq "1" ]; then
+-- 
+2.47.2
+

@@ -1,0 +1,14 @@
+---
+profile: indio_um-335ax
+target: qualcommax
+subtarget: ipq50xx
+description: Build image for the Indio UM-335AX
+image: bin/targets/ipq50xx/generic/openwrt-ipq50xx-indio_um-335ax-squashfs-sysupgrade.tar
+packages:
+  - ipq50xx
+include:
+  - ucentral-ap
+diffconfig: |
+  CONFIG_KERNEL_IPQ_MEM_PROFILE=512
+  CONFIG_BUSYBOX_CUSTOM=y
+  CONFIG_BUSYBOX_CUSTOM_STTY=y

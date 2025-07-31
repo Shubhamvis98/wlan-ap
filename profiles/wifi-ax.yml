@@ -1,9 +1,0 @@
----
-description: Add the wifi support AX targets
-feeds:
-  - name: wifi_ax
-    path: ../../feeds/wifi-ax
-packages:
-  - wireless-regdb
-  - kmod-sched-cake
-
