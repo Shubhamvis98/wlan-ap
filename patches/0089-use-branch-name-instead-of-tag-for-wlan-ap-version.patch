@@ -1,0 +1,26 @@
+From c5c3293d7f5f850f6faab57574a30d84df742a21 Mon Sep 17 00:00:00 2001
+From: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+Date: Thu, 21 Aug 2025 10:24:59 +0530
+Subject: [PATCH] use branch name instead of tag for wlan-ap-version
+
+Signed-off-by: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+---
+ scripts/getver.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/getver.sh b/scripts/getver.sh
+index a49dd81393..b0c93c5e8f 100755
+--- a/scripts/getver.sh
++++ b/scripts/getver.sh
+@@ -11,7 +11,7 @@ export LC_ALL=C
+ 
+ [ "$1" = "wlan-ap-version" ] && {
+ 	cd ..
+-	git tag --points-at HEAD
++	git branch | cut -d' ' -f2
+ 	exit 0
+ }
+ 
+-- 
+2.25.1
+
