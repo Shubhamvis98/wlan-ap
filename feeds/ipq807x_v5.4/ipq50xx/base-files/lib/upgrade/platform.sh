@@ -81,6 +81,7 @@ platform_check_image() {
 	wallys,dr5018|\
 	hfcl,ion4x_w|\
 	hfcl,ion4xi_w|\
+	indio,um-325ax-v2|\
 	optimcloud,d60|\
 	optimcloud,d60-5g|\
 	optimcloud,d50|\
@@ -141,6 +142,11 @@ platform_do_upgrade() {
 				CI_UBIPART="rootfs_1"
 				CI_FWSETENV="primary 1"
 		fi
+		nand_upgrade_tar "$1"
+		;;
+	indio,um-325ax-v2)
+		CI_UBIPART="rootfs_1"
+		[ "$(find_mtd_chardev rootfs)" ] && CI_UBIPART="rootfs"
 		nand_upgrade_tar "$1"
 		;;
 	cig,wf186w|\
