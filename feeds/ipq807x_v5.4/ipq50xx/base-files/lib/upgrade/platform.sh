@@ -82,6 +82,8 @@ platform_check_image() {
 	hfcl,ion4x_w|\
 	hfcl,ion4xi_w|\
 	indio,um-325ax-v2|\
+	indio,um-525axm|\
+	indio,um-525axp|\
 	optimcloud,d60|\
 	optimcloud,d60-5g|\
 	optimcloud,d50|\
@@ -144,7 +146,9 @@ platform_do_upgrade() {
 		fi
 		nand_upgrade_tar "$1"
 		;;
-	indio,um-325ax-v2)
+	indio,um-325ax-v2|\
+	indio,um-525axm|\
+	indio,um-525axp)
 		CI_UBIPART="rootfs_1"
 		[ "$(find_mtd_chardev rootfs)" ] && CI_UBIPART="rootfs"
 		nand_upgrade_tar "$1"
