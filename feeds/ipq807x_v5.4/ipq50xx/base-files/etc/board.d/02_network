@@ -27,13 +27,11 @@ qcom_setup_interfaces()
 	cybertan,eww631-b1)
 		ucidef_add_switch "switch1" "5:wan" "2:lan" "3:lan" "4:lan" "6u@eth0"
 		;;
-	udaya,a6-id2)
-		ucidef_set_interface_wan "eth1"
-		ucidef_set_interface_lan "eth0"
-		;;
+	indio,um-325ax-v2|\
+	udaya,a6-id2|\
 	udaya,a6-od2)
-		ucidef_set_interface_wan "eth1"
 		ucidef_set_interface_lan "eth0"
+		ucidef_set_interface_wan "eth1"
 		;;
 	edgecore,oap101|\
  	edgecore,oap101-6e|\
