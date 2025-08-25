@@ -31,6 +31,13 @@
 		serial1 = &blsp1_uart2;
 		ethernet0 = "/soc/dp1";
 		ethernet1 = "/soc/dp2";
+		led-boot = &led_red;
+		led-failsafe = &led_red;
+		led-running = &led_green;
+		led-upgrade = &led_green;
+		led-gateway = &led_blue;
+		led-factory = &led_blue;
+
 	};
 
 	chosen {
@@ -592,19 +599,22 @@
 audio_pins: audio_pinmux {
 };
         leds_pins: leds_pins {
-                led_5g {
+                led_blue: led_5g {
+			label = "led_5g";
                         pins = "gpio34";
                         function = "gpio";
                         drive-strength = <8>;
                         bias-pull-down;
                 };
-                led_2g {
+                led_green: led_2g {
+			label = "led_2g";
                         pins = "gpio33";
                         function = "gpio";
                         drive-strength = <8>;
                         bias-pull-down;
                 };
-                led_sys {
+                led_red: led_sys {
+			label = "led_sys";
                         pins = "gpio26";
                         function = "gpio";
                         drive-strength = <8>;
