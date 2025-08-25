@@ -273,7 +273,9 @@ function check_cert() {
 	cn = lc(trim(cn));
 	let uci = libuci.cursor();
 	let serial = uci.get('ucentral', 'config', 'serial');
-	return cn != serial;
+	if (cn != serial) {
+		ulog(LOG_INFO, 'CN mismatched\n');
+	}
 }
 
 switch(ARGV[0]) {
