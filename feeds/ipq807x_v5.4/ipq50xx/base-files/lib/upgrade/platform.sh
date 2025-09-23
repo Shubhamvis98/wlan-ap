@@ -82,6 +82,7 @@ platform_check_image() {
 	hfcl,ion4x_w|\
 	hfcl,ion4xi_w|\
 	indio,um-325ax-v2|\
+	indio,um-335ax|\
 	indio,um-525axm|\
 	indio,um-525axp|\
 	optimcloud,d60|\
@@ -147,6 +148,7 @@ platform_do_upgrade() {
 		nand_upgrade_tar "$1"
 		;;
 	indio,um-325ax-v2|\
+	indio,um-335ax|\
 	indio,um-525axm|\
 	indio,um-525axp)
 		CI_UBIPART="rootfs_1"
