@@ -1,16 +1,26 @@
-From ec135e7aefac08806fbabb0634a2bd88a169dfc6 Mon Sep 17 00:00:00 2001
+From bf6639771c90f3e33bfd2cfc31a1e6dadafd13be Mon Sep 17 00:00:00 2001
 From: John Crispin <john@phrozen.org>
 Date: Sat, 15 Jul 2023 15:25:59 +0200
 Subject: [PATCH 58/68] ramips: add mt7621_indio_um-305ax
 
 Signed-off-by: John Crispin <john@phrozen.org>
+
+ramips: mt7621: update mt7621_indio_um-305ax.dts
+
+Changelog:
+- Fix MAC address assignment for Ethernet ports
+- Fix Ethernet port configuration (was not working in the current DTS
+  because GPIOs 23 and 24, used for LEDs, are RGMII2 pins)
+- Add package kmod-7915-firmware to enable Wi-Fi
+
+Signed-off-by: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
 ---
  target/linux/ath79/image/generic.mk           |  22 +--
- .../ramips/dts/mt7621_indio_um-305ax.dts      | 146 ++++++++++++++++++
+ .../ramips/dts/mt7621_indio_um-305ax.dts      | 164 ++++++++++++++++++
  target/linux/ramips/image/mt7621.mk           |  11 ++
  .../mt7621/base-files/etc/board.d/02_network  |   6 +
  .../etc/hotplug.d/ieee80211/10_fix_wifi_mac   |   6 +
- 5 files changed, 180 insertions(+), 11 deletions(-)
+ 5 files changed, 198 insertions(+), 11 deletions(-)
  create mode 100644 target/linux/ramips/dts/mt7621_indio_um-305ax.dts
 
 diff --git a/target/linux/ath79/image/generic.mk b/target/linux/ath79/image/generic.mk
@@ -55,10 +65,10 @@ index 5882feafcb..a98a5e816f 100644
    DEVICE_VENDOR := YunCore
 diff --git a/target/linux/ramips/dts/mt7621_indio_um-305ax.dts b/target/linux/ramips/dts/mt7621_indio_um-305ax.dts
 new file mode 100644
-index 0000000000..79cffbdec2
+index 0000000000..d961a9653e
 --- /dev/null
 +++ b/target/linux/ramips/dts/mt7621_indio_um-305ax.dts
-@@ -0,0 +1,146 @@
+@@ -0,0 +1,164 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 +
 +#include "mt7621.dtsi"
@@ -68,14 +78,13 @@ index 0000000000..79cffbdec2
 +
 +/ {
 +	compatible = "indio,um-305ax", "mediatek,mt7621-soc";
-+	model = "INDIO UM-305AX";
++	model = "Indio UM-305AX";
 +
 +	aliases {
 +		led-boot = &led_green;
-+		led-failsafe = &led_red;
-+		led-running = &led_blue;
-+		led-upgrade = &led_red;
-+		label-mac-device = &wan_port;
++		led-failsafe = &led_green;
++		led-running = &led_green;
++		led-upgrade = &led_green;
 +	};
 +
 +	chosen {
@@ -84,6 +93,11 @@ index 0000000000..79cffbdec2
 +	};
 +
 +	leds {
++		/*
++		* GPIO 23 and 24 LEDs won’t work because these pins are part of the RGMII2 pin group.
++		* To make the LEDs work, we need to change the &state_default node’s group variable
++		* to "rgmii2", which restores LED functionality but disables the Ethernet ports.
++		*/
 +		compatible = "gpio-leds";
 +
 +		led_blue: blue {
@@ -119,7 +133,7 @@ index 0000000000..79cffbdec2
 +
 +&state_default {
 +	gpio {
-+		groups = "rgmii2";
++		groups = "jtag", "wdt";
 +		function = "gpio";
 +	};
 +};
@@ -136,15 +150,19 @@ index 0000000000..79cffbdec2
 +};
 +
 +&gmac0 {
-+	mtd-mac-address = <&factory 0x4>;
++	status = "okay";
++	nvmem-cells = <&macaddr_offset>;
++	nvmem-cell-names = "mac-address";
 +};
 +
 +&switch0 {
 +	ports {
-+		wan_port: port@0 {
++		port@0 {
 +			status = "okay";
 +			label = "wan";
-+			mtd-mac-address = <&factory 0x28>;
++			nvmem-cells = <&macaddr_offset>;
++			nvmem-cell-names = "mac-address";
++			mac-address-increment = <1>;
 +		};
 +
 +		port@1 {
@@ -205,8 +223,18 @@ index 0000000000..79cffbdec2
 +	};
 +};
 +
++&factory {
++	compatible = "nvmem-cells";
++	#address-cells = <1>;
++	#size-cells = <1>;
++
++	macaddr_offset: macaddr@4 {
++		reg = <0x4 0x6>;
++	};
++};
++
 diff --git a/target/linux/ramips/image/mt7621.mk b/target/linux/ramips/image/mt7621.mk
-index 962d7ef440..8790a2fa50 100644
+index 962d7ef440..f120c36650 100644
 --- a/target/linux/ramips/image/mt7621.mk
 +++ b/target/linux/ramips/image/mt7621.mk
 @@ -1148,6 +1148,17 @@ define Device/huasifei_ws1208v2
@@ -215,10 +243,10 @@ index 962d7ef440..8790a2fa50 100644
  
 +define Device/indio_um-305ax
 +  $(Device/dsa-migration)
-+  DEVICE_VENDOR := INDIO
++  DEVICE_VENDOR := Indio
 +  DEVICE_MODEL := UM-305AX
 +  DEVICE_DTS_CONFIG := config@1
-+  DEVICE_PACKAGES += kmod-mt7915e
++  DEVICE_PACKAGES := kmod-mt7615-firmware -uboot-envtools
 +  KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
 +  IMAGE_SIZE := 15774k
 +endef
@@ -269,5 +297,5 @@ index 3467e783f0..d5bd50fdf7 100644
  		[ "$PHYNBR" = "1" ] && \
  			macaddr_add "$(mtd_get_mac_binary factory 0x4)" 1 > /sys${DEVPATH}/macaddress
 -- 
-2.34.1
+2.47.3
 
