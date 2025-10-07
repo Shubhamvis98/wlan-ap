@@ -332,3 +332,21 @@ define Device/emplus_wap588m
  endef
  TARGET_DEVICES += emplus_wap588m
  DEFAULT_DEVICE_VARS += FIT_KEY_DIR FIT_KEY_NAME
+
+define Device/indio_um-225ax-v2
+  DEVICE_VENDOR := Indio
+  DEVICE_MODEL := UM-225AX-V2
+  DEVICE_DTS := mt7981b-indio-um-225ax-v2
+  DEVICE_DTS_DIR := $(DTS_DIR)/mediatek
+  SUPPORTED_DEVICES := indio,um-225ax-v2
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 65536k
+  KERNEL_IN_UBI := 1
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-ubi | check-size $$$$(IMAGE_SIZE)
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_PACKAGES := kmod-mt7981-firmware kmod-mt7915e
+endef
+TARGET_DEVICES += indio_um-225ax-v2
