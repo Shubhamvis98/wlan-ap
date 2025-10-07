@@ -58,6 +58,10 @@ platform_do_upgrade() {
 		fi
 		nand_do_upgrade "$1"
 		;;
+	indio,um-225ax-v2)
+		CI_UBIPART="ubi"
+		nand_do_upgrade "$1"
+		;;
 	senao,iap2300m|\
 	emplus,wap588m|\
 	senao,jeap6500)
@@ -80,6 +84,7 @@ platform_check_image() {
 	case "$board" in
 	edgecore,eap111|\
 	edgecore,eap112|\
+	indio,um-225ax-v2|\
 	senao,iap2300m|\
 	emplus,wap588m|\
 	senao,jeap6500)
