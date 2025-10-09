@@ -1,0 +1,13 @@
+---
+profile: indio_um-220ax
+target: mediatek
+subtarget: mt7981
+description: Build image for the Indio UM-220AX
+image: bin/targets/mediatek/mt7981/openwrt-mediatek-mt7981-indio_um-220ax-squashfs-sysupgrade.bin
+feeds:
+  - name: mediatek
+    path: ../../feeds/mediatek-sdk
+packages:
+  - mediatek
+include:
+  - ucentral-ap
