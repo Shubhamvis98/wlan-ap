@@ -10,6 +10,7 @@ PHYNBR=${DEVPATH##*/phy}
 board=$(board_name)
 
 case "$board" in
+	indio,um-220ax|\
 	indio,um-225ax-v2)
 		hw_mac_addr=$(mtd_get_mac_binary Factory 0x4)
 		[ "$PHYNBR" = "0" ] && macaddr_add $hw_mac_addr 0 > /sys${DEVPATH}/macaddress
