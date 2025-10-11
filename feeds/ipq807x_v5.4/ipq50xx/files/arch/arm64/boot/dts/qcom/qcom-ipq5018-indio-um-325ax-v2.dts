@@ -1,5 +1,6 @@
 /dts-v1/;
 /* Copyright (c) 2018-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2025, Shubham Vishwakarma <shubhamvis98@fossfrog.in>.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -30,11 +31,13 @@
 		serial1 = &blsp1_uart2;
 		ethernet0 = "/soc/dp1";
 		ethernet1 = "/soc/dp2";
-                //led-failsafe = &led_red;
-                //led-running = &led_green;
-                //led-upgrade = &led_green;
-                //led-gateway = &led_blue;
-                //led-factory = &led_blue;
+		led-boot = &led_red;
+		led-failsafe = &led_red;
+		led-running = &led_green;
+		led-upgrade = &led_green;
+		led-gateway = &led_blue;
+		led-factory = &led_blue;
+
 	};
 
 	chosen {
@@ -45,6 +48,14 @@
 		bootargs-append = " swiotlb=1 coherent_pool=2M";
 	#endif
 		stdout-path = "serial0";
+	};
+
+	gpio-watchdog {
+		compatible = "linux,wdt-gpio";
+		gpios = <&tlmm 27 GPIO_ACTIVE_LOW>;
+		hw_algo = "toggle";
+		hw_margin_ms = <5000>;
+		always-running;
 	};
 
 	reserved-memory {
@@ -157,7 +168,7 @@
 			no-map;
 			reg = <0x0 0x4F400000 0x0 0x100000>;
 		};
-		
+
 	#else
 	/*                 512MB/1GB Profiles
 	 * +==========+==============+=========================+
@@ -296,14 +307,6 @@
 	};
 
 	soc {
-		gpio-watchdog {
-			compatible = "linux,wdt-gpio";
-			gpios = <&tlmm 27 GPIO_ACTIVE_LOW>;
-			hw_algo = "toggle";
-			hw_margin_ms = <5000>;
-			always-running;
-		};
-
 		serial@78af000 {
 			status = "ok";
 		};
@@ -596,19 +599,22 @@
 audio_pins: audio_pinmux {
 };
         leds_pins: leds_pins {
-                led_5g {
+                led_blue: led_5g {
+			label = "led_5g";
                         pins = "gpio34";
                         function = "gpio";
                         drive-strength = <8>;
                         bias-pull-down;
                 };
-                led_2g {
+                led_green: led_2g {
+			label = "led_2g";
                         pins = "gpio33";
                         function = "gpio";
                         drive-strength = <8>;
                         bias-pull-down;
                 };
-                led_sys {
+                led_red: led_sys {
+			label = "led_sys";
                         pins = "gpio26";
                         function = "gpio";
                         drive-strength = <8>;
@@ -643,23 +649,23 @@ audio_pins: audio_pinmux {
                 pinctrl-0 = <&leds_pins>;
                 pinctrl-names = "default";
 
-                led_blue: led@34 {
+                led@33 {
                         label = "led_5g";
                         gpios = <&tlmm 34 GPIO_ACTIVE_LOW>;
                         linux,default-trigger = "led_5g";
                         default-state = "off";
                 };
-                led_green: led@33 {
+                led@34 {
                         label = "led_2g";
                         gpios = <&tlmm 33 GPIO_ACTIVE_LOW>;
                         linux,default-trigger = "led_2g";
                         default-state = "off";
                 };
-                led_red: led@26 {
+                led@26 {
                         label = "led_sys";
                         gpios = <&tlmm 26 GPIO_ACTIVE_LOW>;
                         linux,default-trigger = "led_sys";
-                        default-state = "off";
+                        default-state = "on";
                 };
 		led@28 {
                         label = "led_onekey";
