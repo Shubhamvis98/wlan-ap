@@ -1,0 +1,26 @@
+From a303cef212f77a261d3f2e9b018d9ed23b29f1da Mon Sep 17 00:00:00 2001
+From: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+Date: Mon, 24 Nov 2025 12:08:01 +0530
+Subject: [PATCH] batman-adv: fix mc forwarding atomic
+
+Signed-off-by: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+---
+ net/batman-adv/multicast.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/batman-adv/multicast.c b/net/batman-adv/multicast.c
+index 25802c0..d033dc4 100644
+--- a/net/batman-adv/multicast.c
++++ b/net/batman-adv/multicast.c
+@@ -135,7 +135,7 @@ static u8 batadv_mcast_mla_rtr_flags_softif_get_ipv6(struct net_device *dev)
+ {
+ 	struct inet6_dev *in6_dev = __in6_dev_get(dev);
+ 
+-	if (in6_dev && in6_dev->cnf.mc_forwarding)
++	if (in6_dev && atomic_read(&in6_dev->cnf.mc_forwarding))
+ 		return BATADV_NO_FLAGS;
+ 	else
+ 		return BATADV_MCAST_WANT_NO_RTR6;
+-- 
+2.25.1
+
