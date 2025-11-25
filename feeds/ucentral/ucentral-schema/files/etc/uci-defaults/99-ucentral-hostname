@@ -1,7 +1,10 @@
-#!/bin.sh
+#!/bin/sh
 
-hname=$(cat /etc/board.json  | jsonfilter -e '@.system.label_macaddr')
-[ -z "$hname" ] && hname=$(cat /sys/class/net/eth0/address)
+hname=$(cat /etc/board.json | jsonfilter -e '@.system.label_macaddr')
+if [ -z "$hname" ]; then
+	[ -e '/sys/class/net/lan' ] && IFNAME='lan' || IFNAME='eth0'
+	hname=$(cat /sys/class/net/${IFNAME}/address)
+fi
 uci set system.@system[-1].mac=$hname
 hname=$(echo $hname | tr -d : | awk '{print tolower($0)}')
 uci set system.@system[-1].hostname=$hname
