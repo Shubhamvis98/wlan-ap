@@ -1,6 +1,9 @@
 #!/bin/sh
+
+[ -e '/sys/class/net/lan' ] && IFNAME='lan' || IFNAME='eth0'
+
 uci add rtty rtty
-uci set rtty.@rtty[-1].id=$(cat /sys/class/net/eth0/address | tr -d :)
+uci set rtty.@rtty[-1].id=$(cat /sys/class/net/${IFNAME}/address | tr -d :)
 uci set rtty.@rtty[-1].description="$(cat /tmp/sysinfo/model)"
 uci set rtty.@rtty[-1].ssl=1
 uci set rtty.@rtty[-1].port='5912'

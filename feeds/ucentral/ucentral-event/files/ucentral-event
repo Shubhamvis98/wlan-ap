@@ -44,7 +44,14 @@ let vlan_refcount = {};
 function config_load() {
 	uci.load('event');
 	config = uci.get_all('event');
-	wan_ports = config.config?.wan_port || [ 'eth0' ];
+
+	let IFNAME;
+	if (fs.stat("/sys/class/net/lan"))
+		IFNAME = 'lan'
+	else
+		IFNAME = 'eth0'
+
+	wan_ports = config.config?.wan_port || [ IFNAME ];
 
 	if (config.wifi?.filter == '*')
 		config.wifi.filter = [ 'probe', 'auth', 'assoc', 'disassoc', 'deauth', 'local-deauth', 'inactive-deauth', 'key-mismatch', 'beacon-report', 'radar-detected' ];
@@ -251,6 +258,12 @@ handlers = {
 	}, 
 
 	vlan_add_swconfig: function(notify) {
+		let IFNAME;
+		if (fs.stat("/sys/class/net/lan"))
+			IFNAME = 'lan.'
+		else
+			IFNAME = 'eth0.'
+
 		let msg = {                             
 			name: notify.data.ifname,   
 			'link-ext': true,           
@@ -260,13 +273,13 @@ handlers = {
 		if (`${notify.data.vlan_id}` in config.config.swconfig_vlans)            
                         return;          
 		msg = {                          
-			name: 'eth0.' + notify.data.vlan_id,
+			name: IFNAME + notify.data.vlan_id,
 			vlan: [ `${notify.data.vlan_id}:u` ]
 		};
 		ubus.call('network.interface.up_none', 'add_device', msg);
 
 		msg = { 'devices': { } };
-		msg['devices']['eth0.' + notify.data.vlan_id] = { 'ingress': true, 'egress': true };
+		msg['devices'][IFNAME + notify.data.vlan_id] = { 'ingress': true, 'egress': true };
 		ubus.call('dhcpsnoop', 'add_devices', msg);
 
 		let cmd = 'swconfig dev ' + config.config.swconfig + ' vlan ' + notify.data.vlan_id + ' set ports \"' + join(' ', config.config.swconfig_ports) + '\"';
