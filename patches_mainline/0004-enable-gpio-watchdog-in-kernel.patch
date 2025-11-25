@@ -1,0 +1,33 @@
+From 8068bac4544bf059de429543c8c9b2c589d53ad7 Mon Sep 17 00:00:00 2001
+From: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+Date: Mon, 16 Jun 2025 07:12:57 +0000
+Subject: [PATCH] enable gpio watchdog in kernel
+
+---
+ target/linux/qualcommax/config-6.6 | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/target/linux/qualcommax/config-6.6 b/target/linux/qualcommax/config-6.6
+index fe63811934..3c7051ba30 100644
+--- a/target/linux/qualcommax/config-6.6
++++ b/target/linux/qualcommax/config-6.6
+@@ -181,6 +181,8 @@ CONFIG_GENERIC_TIME_VSYSCALL=y
+ CONFIG_GLOB=y
+ CONFIG_GPIOLIB_IRQCHIP=y
+ CONFIG_GPIO_CDEV=y
++CONFIG_GPIO_WATCHDOG=y
++# CONFIG_GPIO_WATCHDOG_ARCH_INITCALL is not set
+ CONFIG_HARDIRQS_SW_RESEND=y
+ CONFIG_HAS_DMA=y
+ CONFIG_HAS_IOMEM=y
+@@ -216,6 +218,7 @@ CONFIG_IRQ_WORK=y
+ # CONFIG_KPSS_XCC is not set
+ CONFIG_LEDS_TLC591XX=y
+ CONFIG_LIBFDT=y
++CONFIG_LOCALVERSION="-Zm9zc2Zyb2cK"
+ CONFIG_LOCK_DEBUGGING_SUPPORT=y
+ CONFIG_LOCK_SPIN_ON_OWNER=y
+ CONFIG_LZO_COMPRESS=y
+-- 
+2.25.1
+

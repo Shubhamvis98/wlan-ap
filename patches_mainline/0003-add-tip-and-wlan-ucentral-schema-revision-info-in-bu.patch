@@ -1,0 +1,115 @@
+From a44a107dad10e72fa1b617765707e4f1c8617d45 Mon Sep 17 00:00:00 2001
+From: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+Date: Tue, 25 Nov 2025 12:12:14 +0530
+Subject: [PATCH] add tip and wlan-ucentral-schema revision info in build
+
+Signed-off-by: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+---
+ include/version.mk                           | 10 ++++++++++
+ package/base-files/Makefile                  |  1 +
+ package/base-files/files/etc/banner          |  1 +
+ package/base-files/files/etc/openwrt_release |  3 +++
+ package/base-files/files/etc/openwrt_version |  1 +
+ scripts/getver.sh                            | 17 +++++++++++++++++
+ 6 files changed, 33 insertions(+)
+
+diff --git a/include/version.mk b/include/version.mk
+index 3c70170287..754c8ce728 100644
+--- a/include/version.mk
++++ b/include/version.mk
+@@ -56,6 +56,13 @@ VERSION_PRODUCT:=$(if $(VERSION_PRODUCT),$(VERSION_PRODUCT),Generic)
+ VERSION_HWREV:=$(call qstrip,$(CONFIG_VERSION_HWREV))
+ VERSION_HWREV:=$(if $(VERSION_HWREV),$(VERSION_HWREV),v0)
+ 
++VERSION_TIP:=$(shell $(TOPDIR)/scripts/getver.sh wlan-ap)
++
++VERSION_TIP_VERSION:=$(shell $(TOPDIR)/scripts/getver.sh wlan-ap-version)
++VERSION_TIP_VERSION:=$(if $(VERSION_TIP_VERSION),$(VERSION_TIP_VERSION),devel)
++
++VERSION_UCENTRAL_SCHEMA:=$(shell $(TOPDIR)/scripts/getver.sh ucentral-schema-version)
++
+ define taint2sym
+ $(CONFIG_$(firstword $(subst :, ,$(subst +,,$(subst -,,$(1))))))
+ endef
+@@ -104,6 +111,9 @@ VERSION_SED_SCRIPT:=$(SED) 's,%U,$(call sed_escape,$(VERSION_REPO)),g' \
+ 	-e 's,%u,$(call sed_escape,$(VERSION_HOME_URL)),g' \
+ 	-e 's,%s,$(call sed_escape,$(VERSION_SUPPORT_URL)),g' \
+ 	-e 's,%P,$(call sed_escape,$(VERSION_PRODUCT)),g' \
++	-e 's,%a,$(call sed_escape,$(VERSION_TIP)),g' \
++	-e 's,%x,$(call sed_escape,$(VERSION_TIP_VERSION)),g' \
++	-e 's,%B,$(call sed_escape,$(VERSION_UCENTRAL_SCHEMA)),g' \
+ 	-e 's,%h,$(call sed_escape,$(VERSION_HWREV)),g' \
+ 	-e 's,%B,$(call sed_escape,$(SOURCE_DATE_EPOCH)),g'
+ 
+diff --git a/package/base-files/Makefile b/package/base-files/Makefile
+index c78c073699..f0837935d1 100644
+--- a/package/base-files/Makefile
++++ b/package/base-files/Makefile
+@@ -248,6 +248,7 @@ endif
+ 
+ 	$(if $(CONFIG_TARGET_PREINIT_DISABLE_FAILSAFE), \
+ 		rm -f $(1)/etc/banner.failsafe,)
++	$(CP) $(1)/etc/openwrt_release $(TOPDIR)/tmp/
+ 
+ ifneq ($(CONFIG_USE_APK),)
+ 	mkdir -p $(1)/etc/apk/
+diff --git a/package/base-files/files/etc/banner b/package/base-files/files/etc/banner
+index f3af3c014f..1422ea45ad 100644
+--- a/package/base-files/files/etc/banner
++++ b/package/base-files/files/etc/banner
+@@ -4,5 +4,6 @@
+  |_______||   __|_____|__|__||________||__|  |____|
+           |__| W I R E L E S S   F R E E D O M
+  -----------------------------------------------------
++ ApNos-%a-%x
+  %D %V, %C
+  -----------------------------------------------------
+diff --git a/package/base-files/files/etc/openwrt_release b/package/base-files/files/etc/openwrt_release
+index d03400ca05..cbb8f4b820 100644
+--- a/package/base-files/files/etc/openwrt_release
++++ b/package/base-files/files/etc/openwrt_release
+@@ -5,3 +5,6 @@ DISTRIB_TARGET='%S'
+ DISTRIB_ARCH='%A'
+ DISTRIB_DESCRIPTION='%D %V %C'
+ DISTRIB_TAINTS='%t'
++DISTRIB_TIP='%D %V %C / TIP-%x-%a'
++DISTRIB_TIP_VERSION='%x'
++DISTRIB_UCENTRAL_SCHEMA_REVISION='%B'
+diff --git a/package/base-files/files/etc/openwrt_version b/package/base-files/files/etc/openwrt_version
+index 48157ed97f..bb0ef233ac 100644
+--- a/package/base-files/files/etc/openwrt_version
++++ b/package/base-files/files/etc/openwrt_version
+@@ -1 +1,2 @@
++ApNos-%a
+ %C
+diff --git a/scripts/getver.sh b/scripts/getver.sh
+index 0659d8004a..7ba529a003 100755
+--- a/scripts/getver.sh
++++ b/scripts/getver.sh
+@@ -3,6 +3,23 @@ export LANG=C
+ export LC_ALL=C
+ [ -n "$TOPDIR" ] && cd $TOPDIR
+ 
++[ "$1" = "wlan-ap" ] && {
++	cd ..
++	git log -n 1 --format="%h"
++	exit 0
++}
++
++[ "$1" = "wlan-ap-version" ] && {
++	cd ..
++	git branch | cut -d' ' -f2
++	exit 0
++}
++
++[ "$1" = "ucentral-schema-version" ] && {
++    cat ./package/feeds/ucentral/ucentral-schema/Makefile | grep PKG_SOURCE_VERSION | awk -F= '{print substr($2,1,7)}'
++    exit 0
++}
++
+ GET_REV=$1
+ 
+ try_version() {
+-- 
+2.25.1
+

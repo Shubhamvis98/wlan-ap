@@ -1,13 +1,8 @@
 ---
 profile: indio_um-225ax-v2
 target: mediatek
-subtarget: mt7981
-description: Build image for the Indio UM-225AX-V2
+subtarget: filogic
+description: Build image for the indio_um-225ax-v2
 image: bin/targets/mediatek/mt7981/openwrt-mediatek-mt7981-indio_um-225ax-v2-squashfs-sysupgrade.bin
-feeds:
-  - name: mediatek
-    path: ../../feeds/mediatek-sdk
-packages:
-  - mediatek
 include:
   - ucentral-ap
