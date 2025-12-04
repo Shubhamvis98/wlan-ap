@@ -1,0 +1,9 @@
+---
+profile: indio_um-225ax
+target: ramips
+subtarget: mt7621
+description: Build image for the Indio UM-225AX
+image: bin/targets/ramips/mt7621/openwrt-ramips-mt7621-indio_um-225ax-squashfs-sysupgrade.bin
+include:
+  - ucentral-ap
+  - hostapd
