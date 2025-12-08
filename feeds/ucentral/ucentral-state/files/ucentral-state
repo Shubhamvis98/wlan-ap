@@ -184,13 +184,22 @@ function blink_timeout() {
 	blink_timer = null;
 }
 
-function led_off_all() {
-	let path = "/sys/class/leds";
-	let leds = fs.lsdir(path);
-	for (let led in leds) {
-		if (fs.stat(path + "/" + led).type == "directory")
+function led_off(all) {
+	if (all == 1) {
+		let path = "/sys/class/leds";
+		let leds = fs.lsdir(path);
+		for (let led in leds) {
+			if (fs.stat(path + "/" + led).type == "directory")
+				led_write(led, 'brightness', 0);
+				led_write(led, 'trigger', 'none');
+		}
+	} else {
+		let leds = ["led-boot", "led-failsafe", "led-running", "led-upgrade", "led-gateway", "led-factory"];
+		for (let l in leds) {
+			let led = led_find(l);
 			led_write(led, 'brightness', 0);
 			led_write(led, 'trigger', 'none');
+		}
 	}
 }
 
@@ -207,7 +216,7 @@ function check_factory() {
 	if (!is_exist('/etc/ucentral/key.pem')) {
 		let led = led_find("led-factory");
 		if (led) {
-			led_off_all();
+			led_off();
 			led_write(led, 'trigger', 'timer');
 			led_write(led, 'delay_off', 100);
 			led_write(led, 'delay_on', 100);
@@ -215,7 +224,7 @@ function check_factory() {
 	} else if (!is_exist('/etc/ucentral/gateway.json')) {
 		let led = led_find('led-gateway');
 		if (led)
-			led_off_all();
+			led_off();
 			led_write(led, 'trigger', 'default-on');
 	}
 }
@@ -250,7 +259,7 @@ let state_handler = {
 		online = false;
 		let led = led_find('led-gateway');
 		if (led)
-			led_off_all();
+			led_off();
 			led_write(led, 'trigger', 'default-on');
 		if (config.ui.offline_trigger) {
 			if (offline_timer)
@@ -264,7 +273,7 @@ let state_handler = {
 		online = true;
 		let led = led_find('led-running');
 		if (led)
-			led_off_all();
+			led_off();
 			led_write(led, 'trigger', 'default-on');
 		online_handler();
 		return 0;
@@ -274,7 +283,7 @@ let state_handler = {
 		let led = led_find('led-running');
 		if (!led)
 			return ubus.STATUS_INVALID_ARGUMENT;
-		led_off_all();
+		led_off();
 		led_write(led, 'trigger', 'timer');
 		led_write(led, 'delay_on', '100');
 		led_write(led, 'delay_off', '100');
