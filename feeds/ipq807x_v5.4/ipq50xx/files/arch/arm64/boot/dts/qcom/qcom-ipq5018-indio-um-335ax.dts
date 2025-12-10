@@ -33,9 +33,10 @@
 		ethernet1 = "/soc/dp2";
 		led-boot = &led_red;
 		led-failsafe = &led_red;
-		led-running = &led_red;
-		led-upgrade = &led_red;
-
+		led-running = &led_green;
+		led-upgrade = &led_green;
+		led-gateway = &led_blue;
+		led-factory = &led_blue;
 	};
 
 	chosen {
