@@ -38,6 +38,16 @@ sonicfi,rap7*)
 		[ -n "$mtd" ] && mount -t ext4 /dev/mtdblock$mtd /certificates
 	fi
 	;;
+indio,um-225ax)
+	mtd=$(find_mtd_index certificates)
+	if [ "$(head -c 4 /dev/mtd$mtd)" == "hsqs" ]; then
+		mount -t squashfs /dev/mtdblock$mtd /mnt
+		cp /mnt/* /certificates
+		umount /mnt
+	else
+		tar -xf /dev/mtdblock$mtd -C /certificates
+	fi
+	;;
 sonicfi,rap6*)
 	mtd=$(find_mtd_index certificates)
 	if [ "$(head -c 4 /dev/mtd$mtd)" == "hsqs" ]; then
