@@ -82,6 +82,7 @@ platform_check_image() {
 	hfcl,ion4x_w|\
 	hfcl,ion4xi_w|\
 	indio,um-325ax-v2|\
+	indio,um-325ax-v4|\
 	indio,um-335ax|\
 	indio,um-525axp|\
 	indio,um-525axm|\
@@ -112,6 +113,7 @@ platform_do_upgrade() {
 	board=$(board_name)
 	case $board in
 	indio,um-325ax-v2|\
+	indio,um-325ax-v4|\
 	indio,um-335ax|\
 	indio,um-525axp|\
 	indio,um-525axm|\
