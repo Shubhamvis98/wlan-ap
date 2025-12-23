@@ -48,6 +48,7 @@ ALLWIFIBOARDS:= \
 	indio-um-510axp-v1 \
 	indio-um-510axm-v1 \
 	indio-um-325ax-v2 \
+	indio-um-325ax-v4 \
 	indio-um-335ax \
 	indio-um-345ax \
 	indio-um-525axp \
@@ -447,6 +448,7 @@ $(eval $(call generate-ath11k-wifi-package,indio-um-310ax-v1,Indio UM-310AX V1))
 $(eval $(call generate-ath11k-wifi-package,indio-um-510axp-v1,Indio UM-510AXP V1))
 $(eval $(call generate-ath11k-wifi-package,indio-um-510axm-v1,Indio UM-510AXM V1))
 $(eval $(call generate-ath11k-wifi-package,indio-um-325ax-v2,Indio UM-325AX V2))
+$(eval $(call generate-ath11k-wifi-package,indio-um-325ax-v4,Indio UM-325AX V4))
 $(eval $(call generate-ath11k-wifi-package,indio-um-335ax,Indio UM-335AX))
 $(eval $(call generate-ath11k-wifi-package,indio-um-345ax,Indio UM-345AX))
 $(eval $(call generate-ath11k-wifi-package,indio-um-525axp,Indio UM-525AXP))
