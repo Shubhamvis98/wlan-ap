@@ -59,7 +59,8 @@ platform_do_upgrade() {
 		nand_do_upgrade "$1"
 		;;
 	indio,um-220ax|\
-	indio,um-225ax-v2)
+	indio,um-225ax-v2|\
+	indio,um-235ax)
 		CI_UBIPART="ubi"
 		nand_do_upgrade "$1"
 		;;
@@ -87,6 +88,7 @@ platform_check_image() {
 	edgecore,eap112|\
 	indio,um-220ax|\
 	indio,um-225ax-v2|\
+	indio,um-235ax|\
 	senao,iap2300m|\
 	emplus,wap588m|\
 	senao,jeap6500)
