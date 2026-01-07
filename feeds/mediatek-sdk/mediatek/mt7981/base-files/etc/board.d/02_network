@@ -24,6 +24,9 @@ mediatek_setup_interfaces()
 	indio,um-225ax-v2)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" wan
 		;;
+	indio,um-235ax)
+		ucidef_set_interfaces_lan_wan "lan1 lan2" wan
+		;;
 	senao,iap2300m)
 		ucidef_set_interface_wan "eth1"
 		;;
