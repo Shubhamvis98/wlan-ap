@@ -351,6 +351,24 @@ define Device/indio_um-225ax-v2
 endef
 TARGET_DEVICES += indio_um-225ax-v2
 
+define Device/indio_um-235ax
+  DEVICE_VENDOR := Indio
+  DEVICE_MODEL := UM-235AX
+  DEVICE_DTS := mt7981b-indio-um-235ax
+  DEVICE_DTS_DIR := $(DTS_DIR)/mediatek
+  SUPPORTED_DEVICES := indio,um-235ax
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 65536k
+  KERNEL_IN_UBI := 1
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-ubi | check-size $$$$(IMAGE_SIZE)
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_PACKAGES := kmod-mt7981-firmware kmod-mt7915e uboot-envtools -procd-ujail
+endef
+TARGET_DEVICES += indio_um-235ax
+
 define Device/indio_um-220ax
   DEVICE_VENDOR := Indio
   DEVICE_MODEL := UM-220AX
