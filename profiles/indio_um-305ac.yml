@@ -6,3 +6,9 @@ description: Build image for the Indio 305AC
 image: bin/targets/ath79/generic/openwrt-ath79-generic-indio_um-305ac-squashfs-sysupgrade.bin
 include:
   - ucentral-ap
+feeds:
+  - name: fossfrog
+    tag: main
+    uri: https://github.com/Shubhamvis98/openwrt_feeds
+diffconfig: |
+  CONFIG_PACKAGE_mesh-monitor=y

@@ -7,7 +7,12 @@ image: bin/targets/mediatek/mt7981/openwrt-mediatek-mt7981-indio_um-220ax-squash
 feeds:
   - name: mediatek
     path: ../../feeds/mediatek-sdk
+  - name: fossfrog
+    tag: main
+    uri: https://github.com/Shubhamvis98/openwrt_feeds
 packages:
   - mediatek
 include:
   - ucentral-ap
+diffconfig: |
+  CONFIG_PACKAGE_mesh-monitor=y
