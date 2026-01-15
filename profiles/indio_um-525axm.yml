@@ -7,6 +7,9 @@ image: bin/targets/ipq50xx/generic/openwrt-ipq50xx-indio_um-525axm-squashfs-sysu
 feeds:
   - name: ipq807x
     path: ../../feeds/ipq807x_v5.4
+  - name: fossfrog
+    tag: main
+    uri: https://github.com/Shubhamvis98/openwrt_feeds
 include:
   - ucentral-ap
 packages:
@@ -15,3 +18,4 @@ diffconfig: |
   CONFIG_KERNEL_IPQ_MEM_PROFILE=512
   CONFIG_BUSYBOX_CUSTOM=y
   CONFIG_BUSYBOX_CONFIG_STTY=y
+  CONFIG_PACKAGE_mesh-monitor=y

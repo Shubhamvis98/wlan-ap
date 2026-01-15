@@ -16,3 +16,4 @@ include:
   - ucentral-ap
 diffconfig: |
   CONFIG_PACKAGE_led-monitor=y
+  CONFIG_PACKAGE_mesh-monitor=y
