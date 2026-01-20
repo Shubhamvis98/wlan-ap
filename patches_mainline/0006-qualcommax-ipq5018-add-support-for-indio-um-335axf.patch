@@ -1,0 +1,759 @@
+From 62e3327ee65c3ba0e2d5bc6ce924365608c54e7f Mon Sep 17 00:00:00 2001
+From: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+Date: Mon, 19 Jan 2026 14:43:10 +0530
+Subject: [PATCH 5/5] qualcommax: ipq5018: add support for indio um-335axf
+
+Signed-off-by: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+---
+ .../uboot-envtools/files/qualcommax_ipq50xx   |   5 +
+ package/firmware/ipq-wifi/Makefile            |   2 +
+ .../arm64/boot/dts/qcom/ipq5018-um-335axf.dts | 490 ++++++++++++++++++
+ target/linux/qualcommax/image/ipq50xx.mk      |  16 +
+ .../ipq50xx/base-files/etc/board.d/02_network |   1 +
+ .../etc/hotplug.d/firmware/11-ath11k-caldata  |  14 +
+ .../etc/hotplug.d/ieee80211/05-wifi-migrate   |   1 +
+ .../base-files/lib/upgrade/platform.sh        |   7 +
+ ...winbound-clear-block-protection-bits.patch |  97 ++++
+ 9 files changed, 633 insertions(+)
+ create mode 100644 target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq5018-um-335axf.dts
+ create mode 100644 target/linux/qualcommax/patches-6.12/0913-winbound-clear-block-protection-bits.patch
+
+diff --git a/package/boot/uboot-tools/uboot-envtools/files/qualcommax_ipq50xx b/package/boot/uboot-tools/uboot-envtools/files/qualcommax_ipq50xx
+index d8542a9aac..feb241dd87 100644
+--- a/package/boot/uboot-tools/uboot-envtools/files/qualcommax_ipq50xx
++++ b/package/boot/uboot-tools/uboot-envtools/files/qualcommax_ipq50xx
+@@ -31,6 +31,11 @@ yuncore,ax830|\
+ yuncore,ax850)
+ 	ubootenv_add_mtd "0:APPSBLENV" "0x0" "0x10000" "0x10000"
+ 	;;
++indio,um-335axf)
++	idx="$(find_mtd_index 0:APPSBLENV)"
++	[ -n "$idx" ] && \
++		ubootenv_add_uci_config "/dev/mtd$idx" "0x0" "0x10000" "0x10000"
++	;;
+ esac
+ 
+ config_load ubootenv
+diff --git a/package/firmware/ipq-wifi/Makefile b/package/firmware/ipq-wifi/Makefile
+index f0ef5baa31..6b51f99c34 100644
+--- a/package/firmware/ipq-wifi/Makefile
++++ b/package/firmware/ipq-wifi/Makefile
+@@ -45,6 +45,7 @@ ALLWIFIBOARDS:= \
+ 	glinet_gl-axt1800 \
+ 	glinet_gl-b3000 \
+ 	ignitenet_ss-w2-ac2600 \
++	indio_um-335axf \
+ 	iodata_wn-dax3000gr \
+ 	linksys_homewrk \
+ 	linksys_mr5500 \
+@@ -226,6 +227,7 @@ $(eval $(call generate-ipq-wifi-package,glinet_gl-ax1800,GL.iNet GL-AX1800))
+ $(eval $(call generate-ipq-wifi-package,glinet_gl-axt1800,GL.iNet GL-AXT1800))
+ $(eval $(call generate-ipq-wifi-package,glinet_gl-b3000,GL.iNet GL-B3000))
+ $(eval $(call generate-ipq-wifi-package,ignitenet_ss-w2-ac2600,Ignitenet SS-W2-AC2600))
++$(eval $(call generate-ipq-wifi-package,indio_um-335axf,Indio UM-335AXF))
+ $(eval $(call generate-ipq-wifi-package,iodata_wn-dax3000gr,I-O DATA WN-DAX3000GR))
+ $(eval $(call generate-ipq-wifi-package,linksys_homewrk,Linksys HomeWRK))
+ $(eval $(call generate-ipq-wifi-package,linksys_mr5500,Linksys MR5500))
+diff --git a/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq5018-um-335axf.dts b/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq5018-um-335axf.dts
+new file mode 100644
+index 0000000000..d55453445b
+--- /dev/null
++++ b/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq5018-um-335axf.dts
+@@ -0,0 +1,490 @@
++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
++/*
++ * Copyright (c) 2026, Shubham Vishwakarma <shubhamvis98@fossfrog.in>
++ */
++
++/dts-v1/;
++
++#include "ipq5018.dtsi"
++#include "ipq5018-ess.dtsi"
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/leds/common.h>
++
++/ {
++	model = "Indio UM-335AXF";
++	compatible = "indio,um-335axf", "qcom,ipq5018";
++
++	chosen {
++		bootargs-append = " root=/dev/ubiblock0_1 coherent_pool=2M";
++		stdout-path = "serial0:115200n8";
++	};
++
++	aliases {
++		serial0 = &blsp1_uart1;
++		led-boot = &led_red;
++		led-failsafe = &led_red;
++		led-running = &led_green;
++		led-upgrade = &led_green;
++		led-gateway = &led_blue;
++		led-factory = &led_blue;
++	};
++
++	keys {
++		compatible = "gpio-keys";
++		pinctrl-0 = <&button_pins>;
++		pinctrl-names = "default";
++
++		wps-button {
++			label = "wps";
++			gpios = <&tlmm 38 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_WPS_BUTTON>;
++		};
++	};
++
++	gpio-leds {
++		compatible = "gpio-leds";
++
++		led_red: system {
++			label = "system";
++			color = <LED_COLOR_ID_RED>;
++			gpios = <&tlmm 26 GPIO_ACTIVE_LOW>;
++			default-status = "on";
++		};
++
++		led_green: wlan2g {
++			label = "wlan2g";
++			color = <LED_COLOR_ID_GREEN>;
++			gpios = <&tlmm 33 GPIO_ACTIVE_LOW>;
++			default-status = "on";
++		};
++
++		led_blue: wlan5g {
++			label = "wlan5g";
++			color = <LED_COLOR_ID_BLUE>;
++			gpios = <&tlmm 34 GPIO_ACTIVE_LOW>;
++			default-status = "on";
++		};
++	};
++
++	gpio-watchdog {
++		compatible = "linux,wdt-gpio";
++		gpios = <&tlmm 27 GPIO_ACTIVE_LOW>;
++		hw_algo = "toggle";
++		hw_margin_ms = <5000>;
++		always-running;
++	};
++};
++
++&sleep_clk {
++	clock-frequency = <32000>;
++};
++
++&xo_board_clk {
++	clock-div = <4>;
++	clock-mult = <1>;
++};
++
++&blsp1_uart1 {
++	status = "okay";
++
++	pinctrl-0 = <&serial_0_pins>;
++	pinctrl-names = "default";
++};
++
++&crypto {
++	status = "okay";
++};
++
++&cryptobam {
++	status = "okay";
++};
++
++&prng {
++	status = "okay";
++};
++
++&pwm {
++	status = "okay";
++
++	#pwm-cells = <2>;
++	pinctrl-0 = <&pwm_pins>;
++	pinctrl-names = "default";
++};
++
++&qfprom {
++	status = "okay";
++};
++
++&qpic_bam {
++	status = "okay";
++};
++
++&blsp1_spi1 {
++	status = "okay";
++
++	flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		reg = <0>;
++		compatible = "jedec,spi-nor";
++		spi-max-frequency = <50000000>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++				partition@0 {
++						label = "0:SBL1";
++						reg = <0x00 0x30000>;
++						read-only;
++				};
++
++				partition@30000 {
++						label = "0:MIBIB";
++						reg = <0x30000 0x10000>;
++						read-only;
++				};
++
++				partition@40000 {
++						label = "0:BOOTCONFIG";
++						reg = <0x40000 0x10000>;
++						read-only;
++				};
++
++				partition@50000 {
++						label = "0:BOOTCONFIG1";
++						reg = <0x50000 0x10000>;
++						read-only;
++				};
++
++				partition@60000 {
++						label = "0:QSEE";
++						reg = <0x60000 0xa0000>;
++						read-only;
++				};
++
++				partition@100000 {
++						label = "0:QSEE_1";
++						reg = <0x100000 0xa0000>;
++						read-only;
++				};
++
++				partition@1a0000 {
++						label = "0:DEVCFG";
++						reg = <0x1a0000 0x10000>;
++						read-only;
++				};
++
++				partition@1b0000 {
++						label = "0:DEVCFG_1";
++						reg = <0x1b0000 0x10000>;
++						read-only;
++				};
++
++				partition@1c0000 {
++						label = "0:CDT";
++						reg = <0x1c0000 0x10000>;
++						read-only;
++				};
++
++				partition@1d0000 {
++						label = "0:CDT_1";
++						reg = <0x1d0000 0x10000>;
++						read-only;
++				};
++
++				partition@1e0000 {
++						label = "0:APPSBLENV";
++						reg = <0x1e0000 0x10000>;
++				};
++
++				partition@1f0000 {
++						label = "0:APPSBL";
++						reg = <0x1f0000 0xa0000>;
++						read-only;
++				};
++
++				partition@290000 {
++						label = "0:APPSBL_1";
++						reg = <0x290000 0xa0000>;
++						read-only;
++				};
++
++				partition@330000 {
++						label = "0:ART";
++						reg = <0x330000 0x70000>;
++						read-only;
++
++				nvmem-layout {
++					compatible = "fixed-layout";
++					#address-cells = <1>;
++					#size-cells = <1>;
++
++					hw_mac_addr: hw_mac_addr {
++						#nvmem-cell-cells = <1>;
++						compatible = "mac-base";
++						reg = <0x0 0x6>;
++					};
++				};
++			};
++		};
++	};
++};
++
++&qpic_nand {
++	pinctrl-0 = <&qpic_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++
++	partitions {
++		status = "disabled";
++	};
++
++	nand@0 {
++		compatible = "spi-nand";
++		reg = <0>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++
++		nand-ecc-engine = <&qpic_nand>;
++
++		nand-ecc-strength = <4>;
++		nand-ecc-step-size = <512>;
++		nand-bus-width = <8>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++					label = "0:TRAINING";
++					reg = <0x00 0x80000>;
++			};
++
++			partition@80000 {
++					label = "rootfs";
++					reg = <0x80000 0x3e00000>;
++			};
++
++			partition@3e80000 {
++					label = "rootfs_1";
++					reg = <0x3e80000 0x3e00000>;
++			};
++		};
++	};
++};
++
++&tlmm {
++	button_pins: button-state {
++		pins = "gpio27", "gpio28";
++		function = "gpio";
++		drive-strength = <8>;
++		bias-pull-up;
++	};
++
++	mdio1_pins: mdio-state {
++		mdc-pins {
++			pins = "gpio36";
++			function = "mdc";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++
++		mdio-pins {
++			pins = "gpio37";
++			function = "mdio";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++	};
++
++	pwm_pins: pwm-state {
++		mux_1 {
++			pins = "gpio1";
++			function = "pwm1";
++			drive-strength = <8>;
++		};
++
++		mux_2 {
++			pins = "gpio30";
++			function = "pwm3";
++			drive-strength = <8>;
++		};
++
++		mux_3 {
++			pins = "gpio46";
++			function = "pwm0";
++			drive-strength = <8>;
++		};
++	};
++
++	qpic_pins: qpic-state {
++		clock-pins {
++			pins = "gpio9";
++			function = "qspi_clk";
++			drive-strength = <8>;
++			bias-disable;
++		};
++
++		cs-pins {
++			pins = "gpio8";
++			function = "qspi_cs";
++			drive-strength = <8>;
++			bias-disable;
++		};
++
++		data-pins {
++			pins = "gpio4", "gpio5", "gpio6", "gpio7";
++			function = "qspi_data";
++			drive-strength = <8>;
++			bias-disable;
++		};
++	};
++
++	serial_0_pins: uart0-state {
++		pins = "gpio20", "gpio21";
++		function = "blsp0_uart0";
++		bias-disable;
++	};
++};
++
++&switch {
++	status = "okay";
++	switch_mac_mode = <MAC_MODE_SGMII_CHANNEL0>;
++
++	qcom,port_phyinfo {
++		// MAC0 -> GE Phy
++		port@0 {
++			port_id = <1>;
++			mdiobus = <&mdio0>;
++			phy_address = <7>;
++		};
++
++		// MAC1 ---SGMII---> QCA8337 SerDes
++		port@1 {
++			port_id = <2>;
++			forced-speed = <1000>;
++			forced-duplex = <1>;
++		};
++	};
++};
++
++// MAC1 ---SGMII---> QCA8337 SerDes
++&dp2 {
++	status = "okay";
++	nvmem-cells = <&hw_mac_addr 0>;
++	nvmem-cell-names = "mac-address";
++
++	fixed-link {
++		speed = <1000>;
++		full-duplex;
++	};
++};
++
++&mdio0 {
++	status = "okay";
++};
++
++&mdio1 {
++	status = "okay";
++
++	pinctrl-0 = <&mdio1_pins>;
++	pinctrl-names = "default";
++	reset-gpios = <&tlmm 39 GPIO_ACTIVE_LOW>;
++
++	switch1: ethernet-switch@17 {
++		compatible = "qca,qca8337";
++		reg = <17>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			switch0cpu: port@0 {
++				reg = <0>;
++				label = "cpu";
++				phy-mode = "sgmii";
++				ethernet = <&dp2>;
++				qca,sgmii-enable-pll;
++
++				fixed-link {
++					speed = <1000>;
++					full-duplex;
++				};
++			};
++
++			port@3 {
++				reg = <3>;
++				label = "lan";
++				phy-handle = <&qca8337_2>;
++				phy-mode = "internal";
++				nvmem-cells = <&hw_mac_addr 0>;
++				nvmem-cell-names = "mac-address";
++			};
++
++			port@4 {
++				reg = <4>;
++				label = "wan";
++				phy-handle = <&qca8337_3>;
++				phy-mode = "internal";
++				nvmem-cells = <&hw_mac_addr 1>;
++				nvmem-cell-names = "mac-address";
++			};
++		};
++
++		mdio {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			// QCA8337 Phy2 -> LAN3
++			qca8337_2: ethernet-phy@2 {
++				reg = <2>;
++			};
++
++			// QCA8337 Phy3 -> LAN4
++			qca8337_3: ethernet-phy@3 {
++				reg = <3>;
++			};
++		};
++	};
++};
++
++&pcie0_phy {
++	status = "okay";
++};
++
++&pcie0 {
++	status = "okay";
++
++	perst-gpios = <&tlmm 15 GPIO_ACTIVE_LOW>;
++
++	pcie@0 {
++		wifi@0,0 {
++			status = "okay";
++
++			/* QCN9074: ath11k lacks DT compatible for PCI cards */
++			compatible = "pci17cb,1104";
++			reg = <0x00010000 0 0 0 0>;
++
++			qcom,ath11k-calibration-variant = "Indio-UM-335AXF";
++		};
++	};
++};
++
++&q6v5_wcss {
++	firmware-name = "ath11k/IPQ5018/hw1.0/q6_fw.mdt",
++			"ath11k/IPQ5018/hw1.0/m3_fw.mdt";
++};
++
++&wifi {
++	status = "okay";
++
++	qcom,rproc = <&q6v5_wcss>;
++	qcom,ath11k-calibration-variant = "Indio-UM-335AXF";
++	qcom,ath11k-fw-memory-mode = <1>;
++};
+diff --git a/target/linux/qualcommax/image/ipq50xx.mk b/target/linux/qualcommax/image/ipq50xx.mk
+index be247c7df9..751fac2a67 100644
+--- a/target/linux/qualcommax/image/ipq50xx.mk
++++ b/target/linux/qualcommax/image/ipq50xx.mk
+@@ -72,6 +72,22 @@ define Device/glinet_gl-b3000
+ endef
+ TARGET_DEVICES += glinet_gl-b3000
+ 
++define Device/indio_um-335axf
++	$(call Device/FitImage)
++	$(call Device/UbiFit)
++	DEVICE_VENDOR := Indio
++	DEVICE_MODEL := UM-335AXF
++	BLOCKSIZE := 128k
++	PAGESIZE := 2048
++	SOC := ipq5018
++	DEVICE_DTS_CONFIG := config@mp03.1
++	DEVICE_PACKAGES := kmod-ath11k-pci \
++		ath11k-firmware-ipq5018 \
++		ath11k-firmware-qcn9074 \
++		ipq-wifi-indio_um-335axf
++endef
++TARGET_DEVICES += indio_um-335axf
++
+ define Device/iodata_wn-dax3000gr
+ 	$(call Device/FitImageLzma)
+ 	DEVICE_VENDOR := I-O DATA
+diff --git a/target/linux/qualcommax/ipq50xx/base-files/etc/board.d/02_network b/target/linux/qualcommax/ipq50xx/base-files/etc/board.d/02_network
+index 4bcd7dd5df..cd31ed56a8 100644
+--- a/target/linux/qualcommax/ipq50xx/base-files/etc/board.d/02_network
++++ b/target/linux/qualcommax/ipq50xx/base-files/etc/board.d/02_network
+@@ -22,6 +22,7 @@ ipq50xx_setup_interfaces()
+ 	xiaomi,ax6000)
+ 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" "wan"
+ 		;;
++	indio,um-335axf|\
+ 	linksys,mx6200|\
+ 	yuncore,ax830|\
+ 	yuncore,ax850)
+diff --git a/target/linux/qualcommax/ipq50xx/base-files/etc/hotplug.d/firmware/11-ath11k-caldata b/target/linux/qualcommax/ipq50xx/base-files/etc/hotplug.d/firmware/11-ath11k-caldata
+index cf48022aea..43d1aed5cc 100644
+--- a/target/linux/qualcommax/ipq50xx/base-files/etc/hotplug.d/firmware/11-ath11k-caldata
++++ b/target/linux/qualcommax/ipq50xx/base-files/etc/hotplug.d/firmware/11-ath11k-caldata
+@@ -49,6 +49,13 @@ case "$FIRMWARE" in
+ 		ath11k_remove_regdomain
+ 		ath11k_set_macflag
+ 		;;
++	indio,um-335axf)
++		caldata_extract "0:ART" 0x1000 0x20000
++		label_mac=$(mtd_get_mac_binary 0:ART 0)
++		ath11k_patch_mac $(macaddr_add $label_mac 2) 0
++		ath11k_remove_regdomain
++		ath11k_set_macflag
++		;;
+ 	esac
+ 	;;
+ "ath11k/QCN6122/hw1.0/cal-ahb-b00a040.wifi.bin")
+@@ -120,6 +127,13 @@ case "$FIRMWARE" in
+ 		ath11k_remove_regdomain
+ 		ath11k_set_macflag
+ 		;;
++	indio,um-335axf)
++		caldata_extract "0:ART" 0x26800 0x20000
++		label_mac=$(mtd_get_mac_binary 0:ART 0)
++		ath11k_patch_mac $(macaddr_add $label_mac 3) 0
++		ath11k_remove_regdomain
++		ath11k_set_macflag
++		;;
+ 	esac
+ 	;;
+ *)
+diff --git a/target/linux/qualcommax/ipq50xx/base-files/etc/hotplug.d/ieee80211/05-wifi-migrate b/target/linux/qualcommax/ipq50xx/base-files/etc/hotplug.d/ieee80211/05-wifi-migrate
+index d3460db582..410df1765b 100644
+--- a/target/linux/qualcommax/ipq50xx/base-files/etc/hotplug.d/ieee80211/05-wifi-migrate
++++ b/target/linux/qualcommax/ipq50xx/base-files/etc/hotplug.d/ieee80211/05-wifi-migrate
+@@ -55,6 +55,7 @@ linksys,mx2000|\
+ yuncore,ax830)
+ 	migrate_radio 'platform/soc@0/b00a040.wifi1' 'platform/soc@0/b00a040.wifi'
+ 	;;
++indio,um-335axf|\
+ linksys,mr5500|\
+ linksys,mx5500|\
+ linksys,spnmx56)
+diff --git a/target/linux/qualcommax/ipq50xx/base-files/lib/upgrade/platform.sh b/target/linux/qualcommax/ipq50xx/base-files/lib/upgrade/platform.sh
+index 24bacdb6b8..7a422ec591 100644
+--- a/target/linux/qualcommax/ipq50xx/base-files/lib/upgrade/platform.sh
++++ b/target/linux/qualcommax/ipq50xx/base-files/lib/upgrade/platform.sh
+@@ -236,6 +236,13 @@ platform_do_upgrade() {
+ 		remove_oem_ubi_volume wifi_fw
+ 		nand_do_upgrade "$1"
+ 		;;
++	indio,um-335axf)
++		CI_UBIPART="rootfs"
++		remove_oem_ubi_volume ubi_rootfs
++		remove_oem_ubi_volume bt_fw
++		remove_oem_ubi_volume wifi_fw
++		nand_do_upgrade "$1"
++		;;
+ 	*)
+ 		default_do_upgrade "$1"
+ 		;;
+diff --git a/target/linux/qualcommax/patches-6.12/0913-winbound-clear-block-protection-bits.patch b/target/linux/qualcommax/patches-6.12/0913-winbound-clear-block-protection-bits.patch
+new file mode 100644
+index 0000000000..5886626e7d
+--- /dev/null
++++ b/target/linux/qualcommax/patches-6.12/0913-winbound-clear-block-protection-bits.patch
+@@ -0,0 +1,97 @@
++From 5eec626c3a521c146504e56b68f20d2e81ca9244 Mon Sep 17 00:00:00 2001
++From: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
++Date: Fri, 9 May 2025 05:58:13 +0000
++Subject: [PATCH] winbound fix
++
++---
++ drivers/mtd/nand/spi/core.c    |  6 +++---
++ drivers/mtd/nand/spi/winbond.c | 34 ++++++++++++++++++++++++++++++++++
++ 2 files changed, 37 insertions(+), 3 deletions(-)
++
++diff --git a/drivers/mtd/nand/spi/core.c b/drivers/mtd/nand/spi/core.c
++index fe9a1a9e2..b4a10da1d 100644
++--- a/drivers/mtd/nand/spi/core.c
+++++ b/drivers/mtd/nand/spi/core.c
++@@ -20,6 +20,9 @@
++ #include <linux/spi/spi.h>
++ #include <linux/spi/spi-mem.h>
++ 
+++int spinand_read_status(struct spinand_device *spinand, u8 *status);
+++int spinand_write_enable_op(struct spinand_device *spinand);
+++
++ static int spinand_read_reg_op(struct spinand_device *spinand, u8 reg, u8 *val)
++ {
++ 	struct spi_mem_op op = SPINAND_GET_FEATURE_OP(reg,
++@@ -43,7 +43,7 @@ static int spinand_write_reg_op(struct spinand_device *spinand, u8 reg, u8 val)
++ 	return spi_mem_exec_op(spinand->spimem, &op);
++ }
++ 
++-static int spinand_read_status(struct spinand_device *spinand, u8 *status)
+++int spinand_read_status(struct spinand_device *spinand, u8 *status)
++ {
++ 	return spinand_read_reg_op(spinand, REG_STATUS, status);
++ }
++@@ -339,7 +339,7 @@ static void spinand_ondie_ecc_save_status(struct nand_device *nand, u8 status)
++ 		engine_conf->status = status;
++ }
++ 
++-static int spinand_write_enable_op(struct spinand_device *spinand)
+++int spinand_write_enable_op(struct spinand_device *spinand)
++ {
++ 	struct spi_mem_op op = SPINAND_WR_EN_DIS_OP(true);
++ 
++diff --git a/drivers/mtd/nand/spi/winbond.c b/drivers/mtd/nand/spi/winbond.c
++index f3bb81d7e..52367a931 100644
++--- a/drivers/mtd/nand/spi/winbond.c
+++++ b/drivers/mtd/nand/spi/winbond.c
++@@ -160,6 +160,38 @@ static int w25n02kv_ecc_get_status(struct spinand_device *spinand,
++ 	return -EINVAL;
++ }
++ 
+++extern int spinand_read_status(struct spinand_device *spinand, u8 *status);
+++extern int spinand_write_enable_op(struct spinand_device *spinand);
+++extern int spinand_write_reg_op(struct spinand_device *spinand, u8 reg, u8 val);
+++
+++static int winbond_disable_block_protection(struct spinand_device *spinand)
+++{
+++	u8 status;
+++	int ret;
+++
+++	/* Read status register */
+++	ret = spinand_read_status(spinand, &status);
+++	if (ret)
+++		return ret;
+++
+++	/* Clear BP bits (BP2-BP0 = bits 4:2) */
+++	status &= ~GENMASK(4, 2);
+++
+++	/* Write Enable */
+++	ret = spinand_write_enable_op(spinand);
+++	if (ret)
+++		return ret;
+++
+++	/* Write back updated status register */
+++	ret = spinand_write_reg_op(spinand, REG_STATUS, status);
+++	if (ret)
+++		return ret;
+++
+++	printk("Winbond protection bits cleared on boot\n");
+++
+++	return 0;
+++}
+++
++ static const struct spinand_info winbond_spinand_table[] = {
++ 	SPINAND_INFO("W25M02GV",
++ 		     SPINAND_ID(SPINAND_READID_METHOD_OPCODE_DUMMY, 0xab, 0x21),
++@@ -269,6 +301,8 @@ static int winbond_spinand_init(struct spinand_device *spinand)
++ 				WINBOND_CFG_BUF_READ);
++ 	}
++ 
+++	winbond_disable_block_protection(spinand);
+++
++ 	return 0;
++ }
++ 
++-- 
++2.25.1
++
+-- 
+2.25.1
+
