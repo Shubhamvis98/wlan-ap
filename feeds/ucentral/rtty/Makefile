@@ -24,6 +24,8 @@ PKG_MAINTAINER:=Jianhui Zhao <zhaojh329@gmail.com>
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
 
+CMAKE_OPTIONS += -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+
 define Package/rtty/Default
   TITLE:=Access your terminals from anywhere via the web
   SECTION:=utils

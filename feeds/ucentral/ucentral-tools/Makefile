@@ -9,6 +9,8 @@ PKG_LICENSE:=BSD-3-Clause
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
 
+CMAKE_OPTIONS += -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+
 define Package/ucentral-tools
   SECTION:=ucentral
   CATEGORY:=uCentral
