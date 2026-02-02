@@ -60,7 +60,8 @@ platform_do_upgrade() {
 		;;
 	indio,um-220ax|\
 	indio,um-225ax-v2|\
-	indio,um-235ax)
+	indio,um-235ax|\
+	radisys,iap2063n)
 		CI_UBIPART="ubi"
 		nand_do_upgrade "$1"
 		;;
@@ -89,6 +90,7 @@ platform_check_image() {
 	indio,um-220ax|\
 	indio,um-225ax-v2|\
 	indio,um-235ax|\
+	radisys,iap2063n|\
 	senao,iap2300m|\
 	emplus,wap588m|\
 	senao,jeap6500)
