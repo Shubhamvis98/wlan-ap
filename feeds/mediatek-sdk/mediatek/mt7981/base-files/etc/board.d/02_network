@@ -24,7 +24,8 @@ mediatek_setup_interfaces()
 	indio,um-225ax-v2)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" wan
 		;;
-	indio,um-235ax)
+	indio,um-235ax|\
+	radisys,iap2063n)
 		ucidef_set_interfaces_lan_wan "lan1 lan2" wan
 		;;
 	senao,iap2300m)
@@ -46,6 +47,12 @@ mediatek_setup_interfaces()
 	esac
 }
 
+chmac() {
+	IFACE=$1
+	MAC=$2
+	ip link set dev "$IFACE" address "$MAC"
+}
+
 mediatek_setup_macs()
 {
 	local board="$1"
@@ -56,6 +63,24 @@ mediatek_setup_macs()
 	local wan_mac_offset=""
 
 	case $board in
+	radisys,iap2063n)
+		mac_offset="0x24"
+		sysfs="/sys/class/ieee80211"
+
+		hw_mac_addr=$(mtd_get_mac_binary $part_name $mac_offset)
+		lan1_mac=$(macaddr_add $hw_mac_addr 1)
+		lan2_mac=$(macaddr_add $hw_mac_addr 1)
+		wan_mac=$(macaddr_add $hw_mac_addr 0)
+
+		chmac "lan1" "$lan1_mac"
+		chmac "lan2" "$lan2_mac"
+		chmac "wan" "$wan_mac"
+
+		mac1=$(macaddr_add $hw_mac_addr 2)
+		mac2=$(macaddr_add $hw_mac_addr 3)
+		[ -d ${sysfs}/phy0 ] && echo ${mac1} > ${sysfs}/phy0/macaddress
+		[ -d ${sysfs}/phy1 ] && echo ${mac2} > ${sysfs}/phy1/macaddress
+		;;
 	edgecore,eap111|\
 	edgecore,eap112)
 		lan_mac_offset="0x24"
