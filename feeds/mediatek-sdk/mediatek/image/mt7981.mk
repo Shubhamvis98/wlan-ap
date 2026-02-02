@@ -386,3 +386,21 @@ define Device/indio_um-220ax
   DEVICE_PACKAGES := kmod-mt7981-firmware kmod-mt7915e uboot-envtools -procd-ujail
 endef
 TARGET_DEVICES += indio_um-220ax
+
+define Device/radisys_iap2063n
+  DEVICE_VENDOR := Radisys
+  DEVICE_MODEL := IAP2063N
+  DEVICE_DTS := mt7981b-radisys-iap2063n
+  DEVICE_DTS_DIR := $(DTS_DIR)/mediatek
+  SUPPORTED_DEVICES := radisys,iap2063n
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 65536k
+  KERNEL_IN_UBI := 1
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-ubi | check-size $$$$(IMAGE_SIZE)
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_PACKAGES := kmod-mt7981-firmware kmod-mt7915e uboot-envtools -procd-ujail
+endef
+TARGET_DEVICES += radisys_iap2063n
