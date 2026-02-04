@@ -91,6 +91,9 @@ platform_check_image() {
 	optimcloud,d60-5g|\
 	optimcloud,d50|\
 	optimcloud,d50-5g|\
+	radisys,eap2062n|\
+	radisys,eap2061hm|\
+	radisys,eap2061hp|\
 	yuncore,fap655|\
 	glinet,b3000|\
 	udaya,a6-id2|\
@@ -123,7 +126,10 @@ platform_do_upgrade() {
 	edgecore,oap101-6e|\
 	edgecore,oap101e|\
 	edgecore,oap101e-6e|\
-	edgecore,eap104)
+	edgecore,eap104|\
+	radisys,eap2062n|\
+	radisys,eap2061hm|\
+	radisys,eap2061hp)
 		if [ "$(find_mtd_chardev rootfs)" ]; then
 			CI_UBIPART="rootfs"
 		else
