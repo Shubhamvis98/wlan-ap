@@ -306,3 +306,30 @@ define Device/emplus_wap581
 endef
 TARGET_DEVICES += emplus_wap581
 
+define Device/radisys_eap2062n
+  DEVICE_TITLE := Radisys EAP2062N
+  DEVICE_DTS := qcom-ipq5018-radisys-eap2062n
+  SUPPORTED_DEVICES := radisys,eap2062n
+  DEVICE_PACKAGES := ath11k-wifi-radisys-eap2062n ath11k-firmware-ipq50xx-spruce ath11k-firmware-qcn6122
+  DEVICE_DTS_CONFIG := config@mp03.5-c1
+endef
+TARGET_DEVICES += radisys_eap2062n
+
+define Device/radisys_eap2061hm
+  DEVICE_TITLE := Radisys EAP2061HM
+  DEVICE_DTS := qcom-ipq5018-radisys-eap2061hm
+  SUPPORTED_DEVICES := radisys,eap2061hm
+  DEVICE_PACKAGES := ath11k-wifi-radisys-eap2061hm ath11k-firmware-ipq50xx-spruce ath11k-firmware-qcn6122
+  DEVICE_DTS_CONFIG := config@mp03.5-c1
+endef
+TARGET_DEVICES += radisys_eap2061hm
+
+define Device/radisys_eap2061hp
+  DEVICE_TITLE := Radisys EAP2061HP
+  DEVICE_DTS := qcom-ipq5018-radisys-eap2061hp
+  SUPPORTED_DEVICES := radisys,eap2061hp
+  DEVICE_PACKAGES := ath11k-wifi-radisys-eap2061hp ath11k-firmware-ipq50xx-spruce ath11k-firmware-qcn6122
+  DEVICE_DTS_CONFIG := config@mp03.5-c1
+endef
+TARGET_DEVICES += radisys_eap2061hp
+
