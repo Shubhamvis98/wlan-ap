@@ -59,6 +59,9 @@ ALLWIFIBOARDS:= \
 	wallys-dr5018 \
 	wallys-dr6018 \
 	wallys-dr6018-v4 \
+	radisys-eap2062n \
+	radisys-eap2061hm \
+	radisys-eap2061hp \
 	sonicfi-rap630c-311g \
 	sonicfi-rap630w-311g \
 	sonicfi-rap630w-312g \
@@ -455,6 +458,9 @@ $(eval $(call generate-ath11k-wifi-package,indio-um-345ax,Indio UM-345AX))
 $(eval $(call generate-ath11k-wifi-package,indio-um-525axp,Indio UM-525AXP))
 $(eval $(call generate-ath11k-wifi-package,indio-um-525axm,Indio UM-525AXM))
 $(eval $(call generate-ath11k-wifi-package,ipnx-iax3000,IPNX IAX3000))
+$(eval $(call generate-ath11k-wifi-package,radisys-eap2062n,Radisys EAP2062N))
+$(eval $(call generate-ath11k-wifi-package,radisys-eap2061hm,Radisys EAP2061HM))
+$(eval $(call generate-ath11k-wifi-package,radisys-eap2061hp,Radisys EAP2061HP))
 $(eval $(call generate-ath11k-wifi-package,sonicfi-rap630c-311g,Sonicfi RAP630C 311G))
 $(eval $(call generate-ath11k-wifi-package,sonicfi-rap630w-311g,Sonicfi RAP630W 311G))
 $(eval $(call generate-ath11k-wifi-package,sonicfi-rap630w-312g,Sonicfi RAP630W 312G))

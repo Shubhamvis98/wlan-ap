@@ -53,7 +53,10 @@ qcom_setup_interfaces()
 	indio,um-335ax|\
 	indio,um-525axm|\
 	indio,um-525axp|\
-	ipnx,iax3000)
+	ipnx,iax3000|\
+	radisys,eap2062n|\
+	radisys,eap2061hm|\
+	radisys,eap2061hp)
 		ucidef_set_interface_wan "eth1"
 		ucidef_set_interface_lan "eth0"
 		ucidef_add_switch "switch1" \
