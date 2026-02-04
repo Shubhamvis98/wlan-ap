@@ -138,6 +138,15 @@ define Device/indio_um-525axm
 endef
 TARGET_DEVICES += indio_um-525axm
 
+define Device/ipnx_iax3000
+  DEVICE_TITLE := IPNX IAX3000
+  DEVICE_DTS := qcom-ipq5018-ipnx-iax3000
+  SUPPORTED_DEVICES := ipnx,iax3000
+  DEVICE_PACKAGES := ath11k-wifi-ipnx-iax3000 ath11k-firmware-ipq50xx-spruce ath11k-firmware-qcn6122
+  DEVICE_DTS_CONFIG := config@mp03.5-c1
+endef
+TARGET_DEVICES += ipnx_iax3000
+
 define Device/udaya_a6_id2
   DEVICE_TITLE := Udaya A6 - ID2
   DEVICE_DTS := qcom-ipq5018-udaya-a6-id2
