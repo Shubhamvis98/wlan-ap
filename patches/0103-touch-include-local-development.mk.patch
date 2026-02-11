@@ -1,0 +1,17 @@
+From ddcba62460154964ff34e1b18789fd1277eac7b8 Mon Sep 17 00:00:00 2001
+From: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+Date: Fri, 6 Feb 2026 04:57:36 +0000
+Subject: [PATCH] touch include/local-development.mk
+
+Signed-off-by: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+---
+ include/local-development.mk | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 include/local-development.mk
+
+diff --git a/include/local-development.mk b/include/local-development.mk
+new file mode 100644
+index 0000000000..e69de29bb2
+-- 
+2.39.5
+
