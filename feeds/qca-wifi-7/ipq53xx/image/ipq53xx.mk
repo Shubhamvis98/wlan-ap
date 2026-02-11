@@ -65,6 +65,19 @@ define Device/emplus_wap7635
 endef
 TARGET_DEVICES += emplus_wap7635
 
+define Device/indio_um-325be
+  DEVICE_TITLE := Indio UM-325BE
+  DEVICE_DTS := ipq5332-indio-um-325be
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTS_CONFIG := config@mi01.6
+  IMAGES := sysupgrade.tar nand-factory.bin nand-factory.ubi
+  IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
+  IMAGE/nand-factory.bin := append-ubi | qsdk-ipq-factory-nand
+  IMAGE/nand-factory.ubi := append-ubi
+  DEVICE_PACKAGES := ath12k-wifi-indio-um-325be ath12k-firmware-qcn92xx ath12k-firmware-ipq5332
+endef
+TARGET_DEVICES += indio_um-325be
+
 define Device/sonicfi_rap7110c_341x
   DEVICE_TITLE := SONICFI RAP7110C-341X
   DEVICE_DTS := ipq5332-sonicfi-rap7110c-341x

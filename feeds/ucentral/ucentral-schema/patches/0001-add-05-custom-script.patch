@@ -1,0 +1,27 @@
+From 92d85eefa663b11ef600a98c9009e575239dbf76 Mon Sep 17 00:00:00 2001
+From: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+Date: Wed, 11 Feb 2026 10:28:20 +0530
+Subject: [PATCH] add 05-custom script
+
+Signed-off-by: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+---
+ renderer/ucentral.uc | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/renderer/ucentral.uc b/renderer/ucentral.uc
+index 687c89d..9e4cd09 100755
+--- a/renderer/ucentral.uc
++++ b/renderer/ucentral.uc
+@@ -85,7 +85,8 @@ try {
+ 		for (let cmd in [ 'reload_config',
+ 				  '/etc/init.d/ratelimit reload',
+ 				  '/etc/init.d/dnsmasq restart',
+-				  '/etc/init.d/ucentral-state restart'])
++				  '/etc/init.d/ucentral-state restart',
++				  '/etc/board.d/05-custom'])
+ 			system(cmd);
+ 
+ 		if (!custom_config) {
+-- 
+2.47.3
+
