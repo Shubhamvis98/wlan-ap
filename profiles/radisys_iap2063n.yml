@@ -1,0 +1,14 @@
+---
+profile: radisys_iap2063n
+target: mediatek
+subtarget: filogic
+description: Build image for the radisys iap2063n
+image: bin/targets/mediatek/filogic/openwrt-mediatek-filogic-radisys_iap2063n-squashfs-sysupgrade.bin
+include:
+  - ucentral-ap
+feeds:
+  - name: fossfrog
+    tag: main
+    uri: https://github.com/Shubhamvis98/openwrt_feeds
+diffconfig: |
+  CONFIG_PACKAGE_led-monitor=y
