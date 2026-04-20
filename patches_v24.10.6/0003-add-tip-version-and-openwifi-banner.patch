@@ -1,7 +1,7 @@
-From 11b84c98376ae30d19fd139f0ffbf21f977dbc43 Mon Sep 17 00:00:00 2001
+From 992c65561d27c8e821deb3f333e02a9df81d9d1d Mon Sep 17 00:00:00 2001
 From: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
-Date: Tue, 20 Jan 2026 15:47:26 +0530
-Subject: [PATCH 4/5] add tip version and openwifi banner
+Date: Mon, 20 Apr 2026 05:33:48 +0000
+Subject: [PATCH 3/4] add tip version and openwifi banner
 
 Signed-off-by: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
 ---
@@ -16,10 +16,10 @@ Signed-off-by: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
  create mode 100644 package/system/procd/patches/0001-procd-add-tip-revision-info-to-system.board-call.patch
 
 diff --git a/include/version.mk b/include/version.mk
-index 0f0d8b0312..bff4cba15e 100644
+index b719a0da00..387604bc8e 100644
 --- a/include/version.mk
 +++ b/include/version.mk
-@@ -63,6 +63,11 @@ VERSION_PRODUCT:=$(if $(VERSION_PRODUCT),$(VERSION_PRODUCT),Generic)
+@@ -56,6 +56,11 @@ VERSION_PRODUCT:=$(if $(VERSION_PRODUCT),$(VERSION_PRODUCT),Generic)
  VERSION_HWREV:=$(call qstrip,$(CONFIG_VERSION_HWREV))
  VERSION_HWREV:=$(if $(VERSION_HWREV),$(VERSION_HWREV),v0)
  
@@ -31,16 +31,17 @@ index 0f0d8b0312..bff4cba15e 100644
  define taint2sym
  $(CONFIG_$(firstword $(subst :, ,$(subst +,,$(subst -,,$(1))))))
  endef
-@@ -112,5 +117,7 @@ VERSION_SED_SCRIPT:=$(SED) 's,%U,$(call sed_escape,$(VERSION_REPO)),g' \
+@@ -104,6 +109,8 @@ VERSION_SED_SCRIPT:=$(SED) 's,%U,$(call sed_escape,$(VERSION_REPO)),g' \
+ 	-e 's,%u,$(call sed_escape,$(VERSION_HOME_URL)),g' \
  	-e 's,%s,$(call sed_escape,$(VERSION_SUPPORT_URL)),g' \
- 	-e 's,%f,$(call sed_escape,$(VERSION_FIRMWARE_URL)),g' \
  	-e 's,%P,$(call sed_escape,$(VERSION_PRODUCT)),g' \
 +	-e 's,%a,$(call sed_escape,$(VERSION_TIP)),g' \
 +	-e 's,%x,$(call sed_escape,$(VERSION_TIP_VERSION)),g' \
  	-e 's,%h,$(call sed_escape,$(VERSION_HWREV)),g' \
  	-e 's,%B,$(call sed_escape,$(SOURCE_DATE_EPOCH)),g'
+ 
 diff --git a/package/base-files/Makefile b/package/base-files/Makefile
-index 693d259ee4..b314ce185b 100644
+index c78c073699..f0837935d1 100644
 --- a/package/base-files/Makefile
 +++ b/package/base-files/Makefile
 @@ -248,6 +248,7 @@ endif
@@ -50,7 +51,7 @@ index 693d259ee4..b314ce185b 100644
 +	$(CP) $(1)/etc/openwrt_release $(TOPDIR)/tmp/
  
  ifneq ($(CONFIG_USE_APK),)
- 	mkdir -p $(1)/etc/apk/repositories.d
+ 	mkdir -p $(1)/etc/apk/
 diff --git a/package/base-files/files/etc/banner b/package/base-files/files/etc/banner
 index f3af3c014f..65c175e1ef 100644
 --- a/package/base-files/files/etc/banner
@@ -90,13 +91,13 @@ index 48157ed97f..bb0ef233ac 100644
  %C
 diff --git a/package/system/procd/patches/0001-procd-add-tip-revision-info-to-system.board-call.patch b/package/system/procd/patches/0001-procd-add-tip-revision-info-to-system.board-call.patch
 new file mode 100644
-index 0000000000..db82bd0686
+index 0000000000..66099763d4
 --- /dev/null
 +++ b/package/system/procd/patches/0001-procd-add-tip-revision-info-to-system.board-call.patch
 @@ -0,0 +1,28 @@
-+From 04333563ff6432c6cc9a3e98705165045897786d Mon Sep 17 00:00:00 2001
++From c702d6e76a58aa27958f0e0e5eca2757bf6b91d8 Mon Sep 17 00:00:00 2001
 +From: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
-+Date: Tue, 20 Jan 2026 15:19:35 +0530
++Date: Mon, 20 Apr 2026 07:21:10 +0000
 +Subject: [PATCH] procd: add tip revision info to system.board call
 +
 +Signed-off-by: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
@@ -105,13 +106,13 @@ index 0000000000..db82bd0686
 + 1 file changed, 4 insertions(+)
 +
 +diff --git a/system.c b/system.c
-+index 7a4c24d..2117d5e 100644
++index 5ce9d27..4b757d7 100644
 +--- a/system.c
 ++++ b/system.c
-+@@ -283,6 +283,10 @@ static int system_board(struct ubus_context *ctx, struct ubus_object *obj,
++@@ -281,6 +281,10 @@ static int system_board(struct ubus_context *ctx, struct ubus_object *obj,
++ 				key = "description";
++ 			else if (!strcasecmp(key, "OPENWRT_BUILD_DATE"))
 + 				key = "builddate";
-+ 			else if (!strcasecmp(key, "FIRMWARE_URL"))
-+ 				key = "firmware_url";
 ++			else if (!strcasecmp(key, "DISTRIB_TIP"))
 ++				key = "tip-revision";
 ++			else if (!strcasecmp(key, "DISTRIB_TIP_VERSION"))
@@ -120,10 +121,10 @@ index 0000000000..db82bd0686
 + 				continue;
 + 
 +-- 
-+2.25.1
++2.39.5
 +
 diff --git a/scripts/getver.sh b/scripts/getver.sh
-index bf21f77feb..cb017c6459 100755
+index 0659d8004a..7bad4f973b 100755
 --- a/scripts/getver.sh
 +++ b/scripts/getver.sh
 @@ -3,6 +3,18 @@ export LANG=C
@@ -146,5 +147,5 @@ index bf21f77feb..cb017c6459 100755
  
  try_version() {
 -- 
-2.25.1
+2.39.5
 
