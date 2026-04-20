@@ -1,6 +1,6 @@
-repo: https://github.com/openwrt/openwrt.git
-branch: v24.10.6
-revision: ec8eeaa8fbd3122b9b9e68b7db02707884a19c9c
+repo: https://github.com/shubhamvis98/openwrt
+branch: openwrt_v24.10.6
+revision: HEAD
 output_dir: ./output
 patch_folders:
   - patches_v24.10.6
