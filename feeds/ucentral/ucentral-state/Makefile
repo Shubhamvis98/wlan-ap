@@ -24,6 +24,7 @@ define Package/ucentral-state/install
 	$(INSTALL_BIN) ./files/ucentral-pstore $(1)/usr/sbin/
 	$(INSTALL_BIN) ./files/ucentral-state.init $(1)/etc/init.d/ucentral-state
 	$(INSTALL_BIN) ./files/ucentral-state.config $(1)/etc/config/state
+	$(INSTALL_BIN) ./files/recovery-ssid $(1)/usr/sbin/recovery-ssid
 endef
 
 $(eval $(call BuildPackage,ucentral-state))

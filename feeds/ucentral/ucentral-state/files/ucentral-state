@@ -266,6 +266,7 @@ let state_handler = {
 				offline_timer.cancel();
 			offline_timer = uloop.timer(config.ui.offline_trigger * 1000, offline_handler);
 		}
+		fs.popen('/usr/sbin/recovery-ssid e &', 'r');
 		return 0;
 	},
 
@@ -276,6 +277,8 @@ let state_handler = {
 			led_off();
 			led_write(led, 'trigger', 'default-on');
 		online_handler();
+		fs.popen('/usr/sbin/recovery-ssid d &', 'r');
+		fs.popen('cp -L /etc/ucentral/ucentral.active /etc/ucentral/recovery.cfg', 'r');
 		return 0;
 	},
 

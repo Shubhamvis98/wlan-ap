@@ -1,0 +1,116 @@
+#!/bin/sh
+# Copyright (C) 2026 Shubham Vishwakarma <shubhamvis98@fossfrog.in>
+
+PIDFILE=/var/run/recovery-ssid.pid
+SSID=recovery-$(uci get system.@system[0].hostname | tr -d '\n' | tail -c4)
+SSID_PASS=c2h1YmgK
+RADIO=$(uci show wireless | awk -F '[.=]' "/band='2g'/ {print \$2}")
+RECOVERY_NET=recovery
+RECOVERY_IP=192.168.99.1
+FWD_DST=$(uci get firewall.@forwarding[0].dest)
+
+# kill previous instance if running
+if [ -f "$PIDFILE" ]; then
+    kill $(cat "$PIDFILE") 2>/dev/null
+    rm -f "$PIDFILE"
+fi
+
+# store current PID
+echo $$ > "$PIDFILE"
+
+case $1 in
+	e)
+		sleep 300
+		# create recovery network if not exists
+		if ! uci show network | grep -q "network.$RECOVERY_NET"; then
+			echo '[+]Adding recovery network'
+			uci set network.$RECOVERY_NET=interface
+			uci set network.$RECOVERY_NET.type='bridge'
+			uci set network.$RECOVERY_NET.proto='static'
+			uci set network.$RECOVERY_NET.ipaddr=$RECOVERY_IP
+			uci set network.$RECOVERY_NET.netmask='255.255.255.0'
+			uci set network.$RECOVERY_NET.bridge_empty='1'
+
+			uci set dhcp.$RECOVERY_NET=dhcp
+			uci set dhcp.$RECOVERY_NET.interface=$RECOVERY_NET
+			uci set dhcp.$RECOVERY_NET.start='10'
+			uci set dhcp.$RECOVERY_NET.limit='10'
+			uci set dhcp.$RECOVERY_NET.leasetime='1h'
+
+			uci add firewall zone
+			uci set firewall.@zone[-1].name=$RECOVERY_NET
+			uci set firewall.@zone[-1].network=$RECOVERY_NET
+			uci set firewall.@zone[-1].input='ACCEPT'
+			uci set firewall.@zone[-1].output='ACCEPT'
+			uci set firewall.@zone[-1].forward='ACCEPT'
+			uci add firewall forwarding
+			uci set firewall.@forwarding[-1].src=$RECOVERY_NET
+			uci set firewall.@forwarding[-1].dest=$FWD_DST
+
+			uci commit network
+			uci commit dhcp
+			uci commit firewall
+			/etc/init.d/network restart
+			sleep 2
+			/etc/init.d/dnsmasq reload
+			/etc/init.d/firewall restart
+		else
+			echo '[!]Recovery network already exists'
+		fi
+
+		# create recovery SSID if not exists
+		if ! uci show wireless | grep -q "ssid=\'$SSID\'"; then
+			echo '[+]Adding recovery SSID'
+			uci add wireless wifi-iface
+			uci set wireless.@wifi-iface[-1].device=$RADIO
+			uci set wireless.@wifi-iface[-1].mode=ap
+			uci set wireless.@wifi-iface[-1].ssid=$SSID
+			uci set wireless.@wifi-iface[-1].encryption=psk2
+			uci set wireless.@wifi-iface[-1].key=$SSID_PASS
+			uci set wireless.@wifi-iface[-1].hidden=1
+			uci set wireless.@wifi-iface[-1].network=$RECOVERY_NET
+			uci commit wireless
+			wifi reload
+		else
+			echo '[!]Recovery SSID already broadcasting'
+		fi
+		;;
+	d)
+		# remove recovery SSID if exists
+		if uci show wireless | grep -q "ssid=\'$SSID\'"; then
+			echo '[+]Removing recovery SSID'
+			uci delete $(uci show wireless | awk -F'.ssid=' -v s="$SSID" '$0 ~ s {print $1}')
+			uci commit wireless
+			wifi reload
+		else
+			echo '[!]Recovery SSID not broadcasting'
+		fi
+
+		# remove recovery network if exists
+		if uci show network | grep -q "network.$RECOVERY_NET"; then
+			echo '[+]Removing recovery network'
+			uci delete network.$RECOVERY_NET
+			uci delete dhcp.$RECOVERY_NET
+			for i in $(uci show firewall | grep "src='$RECOVERY_NET'" | grep -o '@forwarding\[[0-9]*\]'); do
+				uci delete firewall.$i
+			done
+
+			for i in $(uci show firewall | grep "name='$RECOVERY_NET'" | grep -o '@zone\[[0-9]*\]'); do
+				uci delete firewall.$i
+			done
+
+			uci commit network
+			uci commit dhcp
+			uci commit firewall
+			/etc/init.d/network restart
+			sleep 2
+			/etc/init.d/dnsmasq reload
+			/etc/init.d/firewall restart
+		else
+			echo '[!]Recovery network not found'
+		fi
+		;;
+esac
+
+rm -f "$PIDFILE"
+
