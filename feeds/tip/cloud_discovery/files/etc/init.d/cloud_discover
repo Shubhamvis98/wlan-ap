@@ -19,8 +19,8 @@ start_service() {
 	}
 
 	local valid=$(cat /etc/ucentral/gateway.json | jsonfilter -e '@["valid"]')
-	[ "$valid" == "true" ] || 
-		/usr/share/ucentral/ucentral.uc /etc/ucentral/ucentral.cfg.0000000001 > /dev/null
+	[ "$valid" == "true" ] ||
+		/usr/share/ucentral/ucentral.uc /etc/ucentral/recovery.cfg > /dev/null
 
 	est_client check
 	[ $? -eq 1 ] && {
