@@ -1,0 +1,28 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+board=$(board_name)
+
+add_switch_vlan() {
+	local dev="$1"
+	local vlan="$2"
+	local ports="$3"
+
+	if uci -q show network | grep -q "switch_vlan.*ports.*${ports}"; then
+		return 0
+	fi
+
+	uci add network switch_vlan
+	uci set network.@switch_vlan[-1].device="$dev"
+	uci set network.@switch_vlan[-1].vlan="$vlan"
+	uci set network.@switch_vlan[-1].ports="$ports"
+	uci commit network
+}
+
+case "$board" in
+	indio,um-325be)
+		add_switch_vlan switch1 1 '3 0t'
+		add_switch_vlan switch1 2 '4 0t'
+	;;
+esac
