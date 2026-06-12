@@ -86,6 +86,7 @@ platform_check_image() {
 	indio,um-335ax|\
 	indio,um-525axp|\
 	indio,um-525axm|\
+	ipnx,iax3000|\
 	optimcloud,d60|\
 	optimcloud,d60-5g|\
 	optimcloud,d50|\
@@ -115,7 +116,8 @@ platform_do_upgrade() {
 	indio,um-325ax-v2|\
 	indio,um-335ax|\
 	indio,um-525axp|\
-	indio,um-525axm)
+	indio,um-525axm|\
+	ipnx,iax3000)
 		if [ "$(find_mtd_chardev rootfs)" ]; then
 			CI_UBIPART="rootfs"
 		else
