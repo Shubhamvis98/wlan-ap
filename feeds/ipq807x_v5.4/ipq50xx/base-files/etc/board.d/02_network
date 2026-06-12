@@ -49,6 +49,7 @@ qcom_setup_interfaces()
 			"6u@eth1" "1:lan" "2:lan" "3:lan" "4:lan"
 		;;
 	indio,um-325ax-v2|\
+	indio,um-325ax-v4|\
 	indio,um-335ax|\
 	indio,um-525axm|\
 	indio,um-525axp)
