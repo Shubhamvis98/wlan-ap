@@ -3,6 +3,32 @@
 'use strict';
 
 import * as iwinfo from 'iwinfo';
+import * as fs from 'fs';
+
+function wifi_modes() {
+	let p = fs.popen("iw phy");
+	let out = p.read("all");
+	p.close();
+
+	let modes = [];
+
+	if (out =~ /5180 MHz/)
+		push(modes, "a");
+
+	if (out =~ /HT Capabilities/)
+		push(modes, "n");
+
+	if (out =~ /VHT Capabilities/)
+		push(modes, "ac");
+
+	if (out =~ /HE Iftypes/)
+		push(modes, "ax");
+
+	if (out =~ /EHT Iftypes/)
+		push(modes, "be");
+
+	return join("/", modes);
+}
 
 function print_assoclist(stations) {
 	for (let mac, station in stations) {
@@ -50,7 +76,7 @@ function print_info(list) {
 		printf(`${padding}Signal: ${bss.signal}  Noise: ${bss.noise}\n`);
 		printf(`${padding}Bit Rate: ${bss.bitrate ?? 'unknown'} MBit/s\n`);
 		printf(`${padding}Encryption: ${bss.encryption}\n`);
-		printf(`${padding}Type: nl80211  HW Mode(s): 802.11${bss.hwmode}\n`);
+		printf(`${padding}Type: nl80211  HW Mode(s): 802.11%s\n`, wifi_modes());
 		printf(`${padding}Hardware: ${bss.hw_type} [${bss.hw_id}]\n`);
 		printf(`${padding}TX power offset: ${bss.power_offset}\n`);
 		printf(`${padding}Channel offset: ${bss.channel_offset}\n`);
