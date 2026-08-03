@@ -19,3 +19,4 @@ diffconfig: |
   CONFIG_BUSYBOX_CUSTOM=y
   CONFIG_BUSYBOX_CONFIG_STTY=y
   CONFIG_PACKAGE_mesh-monitor=y
+  CONFIG_PACKAGE_cert-fetch=y
