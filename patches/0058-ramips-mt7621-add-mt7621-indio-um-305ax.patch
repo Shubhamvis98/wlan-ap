@@ -7,7 +7,7 @@ Changelog:
 - Fix MAC address assignment for Ethernet ports
 - Fix Ethernet port configuration (was not working in the current DTS
   because GPIOs 23 and 24, used for LEDs, are RGMII2 pins)
-- Add package kmod-7915-firmware to enable Wi-Fi
+- Add package kmod-mt7915-firmware to enable Wi-Fi
 
 Signed-off-by: Shubham Vishwakarma <shubhamvis98@fossfrog.in>
 ---
@@ -246,7 +246,7 @@ index 962d7ef440..8790a2fa50 100644
 +  DEVICE_VENDOR := INDIO
 +  DEVICE_MODEL := UM-305AX
 +  DEVICE_DTS_CONFIG := config@1
-+  DEVICE_PACKAGES += kmod-mt7915e
++  DEVICE_PACKAGES += kmod-mt7915e kmod-mt7915-firmware
 +  KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
 +  IMAGE_SIZE := 15774k
 +endef
